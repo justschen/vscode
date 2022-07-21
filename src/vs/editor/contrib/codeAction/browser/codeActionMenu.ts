@@ -5,6 +5,7 @@
 
 import * as dom from 'vs/base/browser/dom';
 import { IAnchor } from 'vs/base/browser/ui/contextview/contextview';
+import { IconLabel } from 'vs/base/browser/ui/iconLabel/iconLabel';
 import { IListEvent, IListRenderer } from 'vs/base/browser/ui/list/list';
 import { List } from 'vs/base/browser/ui/list/listWidget';
 import { Action, IAction, Separator } from 'vs/base/common/actions';
@@ -22,6 +23,7 @@ import { ITextModel } from 'vs/editor/common/model';
 import { ILanguageFeaturesService } from 'vs/editor/common/services/languageFeatures';
 import { codeActionCommandId, CodeActionItem, CodeActionSet, fixAllCommandId, organizeImportsCommandId, refactorCommandId, sourceActionCommandId } from 'vs/editor/contrib/codeAction/browser/codeAction';
 import { CodeActionAutoApply, CodeActionCommandArgs, CodeActionKind, CodeActionTrigger, CodeActionTriggerSource } from 'vs/editor/contrib/codeAction/browser/types';
+import { suggestMoreInfoIcon } from 'vs/editor/contrib/suggest/browser/suggestWidgetRenderer';
 import { localize } from 'vs/nls';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IContextKey, IContextKeyService, RawContextKey } from 'vs/platform/contextkey/common/contextkey';
@@ -29,10 +31,10 @@ import { IContextMenuService, IContextViewService } from 'vs/platform/contextvie
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { ResolvedKeybindingItem } from 'vs/platform/keybinding/common/resolvedKeybindingItem';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { IThemeService } from 'vs/platform/theme/common/themeService';
+import { IThemeService, ThemeIcon } from 'vs/platform/theme/common/themeService';
 
 export const Context = {
-	Visible: new RawContextKey<boolean>('CodeActionMenuVisible', false, localize('CodeActionMenuVisible', "Whether the code action list widget is visible"))
+	Visible: new RawContextKey<boolean>('CodeAactionMenuVisible', false, localize('CodeActionMenuVisible', "Whether the code action list widget is visible"))
 };
 
 interface CodeActionWidgetDelegate {
@@ -87,6 +89,10 @@ export interface ICodeActionMenuTemplateData {
 	detail: HTMLElement;
 	decoratorRight: HTMLElement;
 	disposables: IDisposable[];
+	iconContainer?: HTMLElement;
+	right?: HTMLElement;
+	detailsLabel?: HTMLElement;
+	readMore?: HTMLElement;
 }
 
 const TEMPLATE_ID = 'codeActionWidget';
@@ -103,6 +109,22 @@ class CodeMenuRenderer implements IListRenderer<ICodeActionMenuItem, ICodeAction
 		// data.detail = document.createElement('');
 		container.append(data.text);
 		// container.append(data.detail);
+
+		data.iconContainer = document.createElement('.icon-label-codicon');
+		container.append(data.iconContainer);
+		data.right = document.createElement('span.right');
+
+		// data.iconLabel = new IconLabel(data.left, { supportHighlights: true, supportIcons: true });
+		// data.disposables.add(data.iconLabel);
+
+		// data.parametersLabel = append(data.left, $('span.signature-label'));
+		// data.qualifierLabel = append(data.left, $('span.qualifier-label'));
+		data.detailsLabel = document.createElement('span.details-label');
+		container.append(data.detailsLabel);
+
+		data.readMore = document.createElement('span.readMore' + ThemeIcon.asCSSSelector(suggestMoreInfoIcon));
+		container.append(data.readMore);
+		data.readMore.title = localize('readMore', "Read More");
 
 		return data;
 	}
