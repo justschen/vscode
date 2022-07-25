@@ -147,6 +147,7 @@ export class CodeActionMenu extends Disposable implements IEditorContribution {
 	private currSelectedItem: number = 0;
 	private hasSeperator: boolean = false;
 	private block: HTMLElement | null = null;
+	private contextLabel!: HTMLElement;
 
 	public static readonly ID: string = 'editor.contrib.codeActionMenu';
 
@@ -215,6 +216,21 @@ export class CodeActionMenu extends Disposable implements IEditorContribution {
 		this.block.style.width = '100%';
 		this.block.style.height = '100%';
 		this.block.style.zIndex = '-1';
+
+		const label = document.createElement('div');
+		this.contextLabel = element.appendChild(label);
+		this.contextLabel.classList.add('context-view-label');
+
+		const updateLabel = () => {
+			const [accept, preview] = [`Enter`, `Shift+Enter`];
+			// this._keybindingService.lookupKeybinding(accept);
+			this.contextLabel!.innerText = localize({ key: 'label', comment: ['placeholders are keybindings, e.g "F2 to Refactor, Shift+F2 to Preview"'] }, "{0} to Refactor, {1} to Preview", accept, preview);
+		};
+
+		updateLabel();
+		// renderDisposables.add(this._keybindingService.onDidUpdateKeybindings(updateLabel));
+		// this._updateFont();
+		// this._updateStyles(this._themeService.getColorTheme());
 
 		// TODO@Steven: this is never getting disposed
 		dom.addDisposableListener(this.block, dom.EventType.MOUSE_DOWN, e => e.stopPropagation());
