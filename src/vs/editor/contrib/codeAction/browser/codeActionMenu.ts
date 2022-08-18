@@ -36,7 +36,7 @@ import { Codicon } from 'vs/base/common/codicons';
 import { ActionBar } from 'vs/base/browser/ui/actionbar/actionbar';
 
 export const Context = {
-	Visible: new RawContextKey<boolean>('CodeActionMenuVisible', false, localize('CodeActionMenuVisible', "Whether the code action list widget is visible"))
+	Visible: new RawContextKey<boolean>('codeActionMenuVisible', false, localize('codeActionMenuVisible', "Whether the code action list widget is visible"))
 };
 
 interface CodeActionWidgetDelegate {
@@ -302,11 +302,10 @@ export class CodeActionMenu extends Disposable implements IEditorContribution {
 		});
 	}
 
-
 	/**
-	 * Checks if the setting has disabled/enabled headers in the code action widget
+	 * Checks if the setting has disabled/enabled headers in the code action widget.
 	 */
-	private isCodeActionWidgetHeadersEnabled(model: ITextModel): boolean {
+	private isCodeActionWidgetHeadersDisabled(model: ITextModel): boolean {
 		return this._configurationService.getValue('editor.experimental.useCustomCodeActionMenu.toggleHeaders', {
 			resource: model.uri
 		});
@@ -437,7 +436,9 @@ export class CodeActionMenu extends Disposable implements IEditorContribution {
 
 		let numHeaders = 0;
 		const totalActionEntries: (IAction | string)[] = [];
-		if (this.isCodeActionWidgetHeadersEnabled(model)) {
+
+		// Checks if headers are disabled.
+		if (this.isCodeActionWidgetHeadersDisabled(model)) {
 			totalActionEntries.push(...inputArray);
 
 		} else {
