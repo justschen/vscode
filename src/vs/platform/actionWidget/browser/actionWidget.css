@@ -12,6 +12,7 @@
 	display: block;
 	width: 100%;
 	border: 1px solid var(--vscode-editorWidget-border) !important;
+	/* border-top: 0px !important; */
 	border-radius: 2px;
 	background-color: var(--vscode-editorWidget-background);
 	color: var(--vscode-editorWidget-foreground);
@@ -69,8 +70,16 @@
 }
 
 .action-widget .monaco-list-row.group-header {
-	color: var(--vscode-pickerGroup-foreground) !important;
+	color: var(--vscode-descriptionForeground) !important;
 	font-weight: 600;
+	border-top: 1px solid var(--vscode-editorWidget-border);
+	/* animation: group-header 1s infinite; */
+}
+
+@keyframes group-header {
+	0% { color:red; }
+	50% {color: blue}
+	100% { color:green; }
 }
 
 .action-widget .monaco-list .group-header,
@@ -114,7 +123,7 @@
 
 .action-widget .action-widget-action-bar {
 	background-color: var(--vscode-editorHoverWidget-statusBarBackground);
-	border-top: 1px solid var(--vscode-editorHoverWidget-border);
+	/* border-top: 1px solid var(--vscode-editorHoverWidget-border); */
 }
 
 .action-widget .action-widget-action-bar::before {
