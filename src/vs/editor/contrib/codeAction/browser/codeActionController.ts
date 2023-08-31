@@ -30,6 +30,7 @@ import { IMarkerService } from 'vs/platform/markers/common/markers';
 import { IEditorProgressService } from 'vs/platform/progress/common/progress';
 import { CodeActionAutoApply, CodeActionFilter, CodeActionItem, CodeActionSet, CodeActionTrigger, CodeActionTriggerSource } from '../common/types';
 import { CodeActionModel, CodeActionsState } from './codeActionModel';
+import { CancellationToken } from 'vs/base/common/cancellation';
 
 
 interface IActionShowOptions {
@@ -251,7 +252,12 @@ export class CodeActionController extends Disposable implements IEditorContribut
 			},
 			onHide: () => {
 				this._editor?.focus();
-			}
+			},
+			onFocus: async (action: CodeActionItem, preview?: boolean | undefined) => {
+				await action.resolve(CancellationToken.None);
+				// console.log(action.action.edit?.edits.length);
+				return action.action.edit?.edits.length ? true : false;
+			},
 		};
 
 		this._actionWidgetService.show(
