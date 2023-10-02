@@ -40,7 +40,7 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfigurat
 		'editor.codeActionWidget.includeNearbyQuickFixes': {
 			type: 'boolean',
 			scope: ConfigurationScope.LANGUAGE_OVERRIDABLE,
-			description: nls.localize('includeNearbyQuickFixes', "Enable/disable showing nearest quickfix within a line when not currently on a diagnostic."),
+			description: nls.localize('includeNearbyQuickFixes', "Enable/disable showing nearest Quick Fix within a line when not currently on a diagnostic."),
 			default: false,
 		},
 	}
