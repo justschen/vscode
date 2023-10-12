@@ -8,9 +8,15 @@ import { IDisposable } from 'vs/base/common/lifecycle';
 import { URI } from 'vs/base/common/uri';
 import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
 import { IssueReporterData } from 'vs/platform/issue/common/issue';
+// eslint-disable-next-line local/code-import-patterns
+import { MarkdownString } from 'vscode';
 
 export interface IIssueUriRequestHandler {
 	provideIssueUrl(token: CancellationToken): Promise<URI>;
+}
+
+export interface IIssueDataProvider {
+	provideIssueExtensionData(token: CancellationToken): Promise<string | MarkdownString>;
 }
 
 export const IWorkbenchIssueService = createDecorator<IWorkbenchIssueService>('workbenchIssueService');
@@ -20,4 +26,5 @@ export interface IWorkbenchIssueService {
 	openReporter(dataOverrides?: Partial<IssueReporterData>): Promise<void>;
 	openProcessExplorer(): Promise<void>;
 	registerIssueUriRequestHandler(extensionId: string, handler: IIssueUriRequestHandler): IDisposable;
+	registerIssueDataProvider(extensionId: string, handler: IIssueDataProvider): IDisposable;
 }

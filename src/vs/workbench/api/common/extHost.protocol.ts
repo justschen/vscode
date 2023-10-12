@@ -80,6 +80,7 @@ import { CandidatePort } from 'vs/workbench/services/remote/common/tunnelModel';
 import { ITextQueryBuilderOptions } from 'vs/workbench/services/search/common/queryBuilder';
 import * as search from 'vs/workbench/services/search/common/search';
 import { ISaveProfileResult } from 'vs/workbench/services/userDataProfile/common/userDataProfile';
+import { MarkdownString } from 'vscode';
 
 export interface IWorkspaceData extends IStaticWorkspaceData {
 	folders: { uri: UriComponents; name: string; index: number }[];
@@ -2556,11 +2557,14 @@ export interface MainThreadLocalizationShape extends IDisposable {
 
 export interface ExtHostIssueReporterShape {
 	$getIssueReporterUri(extensionId: string, token: CancellationToken): Promise<UriComponents>;
+	$getIssueReporterData(extensionId: string, token: CancellationToken): Promise<string | MarkdownString>;
 }
 
 export interface MainThreadIssueReporterShape extends IDisposable {
 	$registerIssueUriRequestHandler(extensionId: string): void;
 	$unregisterIssueUriRequestHandler(extensionId: string): void;
+	$registerIssueDataProvider(extensionId: string): void;
+	$unregisterIssueDataProvider(extensionId: string): void;
 }
 
 export interface TunnelDto {

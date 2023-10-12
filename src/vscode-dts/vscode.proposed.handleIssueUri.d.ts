@@ -14,11 +14,22 @@ declare module 'vscode' {
 		handleIssueUrlRequest(): ProviderResult<Uri>;
 	}
 
+	export interface IssueDataProvider {
+		provideIssueTemplate(token: CancellationToken): ProviderResult<string | MarkdownString>;
+		provideIssueData(token: CancellationToken): ProviderResult<string | MarkdownString>;
+	}
+
+	// interface IssueUrlProvider {
+	// 	provideIssueUrl(token: CancellationToken): ProviderResult<URL>;
+	// }
+
 	export namespace env {
 		/**
 		 * Register an {@link IssueUriRequestHandler}. By registering an issue uri request handler,
 		 * you can direct the built-in issue reporter to your issue reporting web experience of choice.
 		 * The Uri that the handler returns will be opened in the user's browser.
+		 *
+		 * Register an {@link IssueDataProvider}. By registering an issue data provider....
 		 *
 		 * Examples of this include:
 		 * - Using GitHub Issue Forms or GitHub Discussions you can pre-fill the issue creation with relevant information from the current workspace using query parameters
@@ -27,5 +38,6 @@ declare module 'vscode' {
 		 * @param handler the issue uri request handler to register for this extension.
 		 */
 		export function registerIssueUriRequestHandler(handler: IssueUriRequestHandler): Disposable;
+		export function registerIssueDataProvider(provider: IssueDataProvider): Disposable;
 	}
 }

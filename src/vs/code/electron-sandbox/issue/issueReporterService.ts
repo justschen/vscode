@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { localize } from 'vs/nls';
 import { $, reset, windowOpenNoOpener } from 'vs/base/browser/dom';
 import { Button, unthemedButtonStyles } from 'vs/base/browser/ui/button/button';
 import { renderIcon } from 'vs/base/browser/ui/iconLabel/iconLabels';
@@ -10,16 +9,19 @@ import { Delayer } from 'vs/base/common/async';
 import { Codicon } from 'vs/base/common/codicons';
 import { groupBy } from 'vs/base/common/collections';
 import { debounce } from 'vs/base/common/decorators';
+import { CancellationError } from 'vs/base/common/errors';
 import { Disposable } from 'vs/base/common/lifecycle';
 import { isLinuxSnap, isMacintosh } from 'vs/base/common/platform';
 import { escape } from 'vs/base/common/strings';
-import { IssueReporterData as IssueReporterModelData, IssueReporterModel } from 'vs/code/electron-sandbox/issue/issueReporterModel';
+import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from 'vs/code/electron-sandbox/issue/issueReporterModel';
+import { localize } from 'vs/nls';
 import { isRemoteDiagnosticError } from 'vs/platform/diagnostics/common/diagnostics';
 import { IIssueMainService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueReporterWindowConfiguration, IssueType } from 'vs/platform/issue/common/issue';
 import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
 import { INativeHostService } from 'vs/platform/native/common/native';
 import { applyZoom, zoomIn, zoomOut } from 'vs/platform/window/electron-sandbox/window';
-import { CancellationError } from 'vs/base/common/errors';
+// eslint-disable-next-line local/code-import-patterns
+import { MarkdownString } from 'vscode';
 
 // GitHub has let us know that we could up our limit here to 8k. We chose 7500 to play it safe.
 // ref https://github.com/microsoft/vscode/issues/159191
@@ -235,6 +237,18 @@ export class IssueReporter extends Disposable {
 		}
 	}
 
+	private async getIssueDataFromExtension(extension: IssueReporterExtensionData): Promise<string | MarkdownString> {
+		try {
+			const data = await this.issueMainService.$getIssueReporterData(extension.id);
+			return data;
+		} catch (e) {
+			extension.hasIssueDataProviders = false;
+			// The issue handler failed so fall back to old issue reporter experience.
+			this.renderBlocks();
+			throw e;
+		}
+	}
+
 	private setEventHandlers(): void {
 		this.addEventListener('issue-type', 'change', (event: Event) => {
 			const issueType = parseInt((<HTMLInputElement>event.target).value);
@@ -255,6 +269,8 @@ export class IssueReporter extends Disposable {
 				this.issueReporterModel.update({ [elementId]: !this.issueReporterModel.getData()[elementId] });
 			});
 		});
+
+
 
 		const showInfoElements = document.getElementsByClassName('showInfo');
 		for (let i = 0; i < showInfoElements.length; i++) {
@@ -701,6 +717,8 @@ export class IssueReporter extends Disposable {
 		const titleTextArea = this.getElementById('issue-title-container')!;
 		const descriptionTextArea = this.getElementById('description')!;
 
+		const extensionDataTextArea = this.getElementById('extension-data')!;
+
 		// Hide all by default
 		hide(blockContainer);
 		hide(systemBlock);
@@ -725,6 +743,19 @@ export class IssueReporter extends Disposable {
 			reset(descriptionTitle, localize('handlesIssuesElsewhere', "This extension handles issues outside of VS Code"));
 			reset(descriptionSubtitle, localize('elsewhereDescription', "The '{0}' extension prefers to use an external issue reporter. To be taken to that issue reporting experience, click the button below.", selectedExtension.displayName));
 			this.previewButton.label = localize('openIssueReporter', "Open External Issue Reporter");
+			return;
+		}
+
+		if (fileOnExtension && selectedExtension?.hasIssueDataProviders) {
+			// hide(titleTextArea);
+			// hide(descriptionTextArea);
+			// reset(descriptionTitle, localize('handlesIssuesElsewhere', "This extension handles issues outside of VS Code"));
+			// reset(descriptionSubtitle, localize('elsewhereDescription', "The '{0}' extension prefers to use an external issue reporter. To be taken to that issue reporting experience, click the button below.", selectedExtension.displayName));
+			// this.previewButton.label = localize('openIssueReporter', "Open External Issue Reporter");
+			// use show, but with prefilled data.
+			// TODO
+			// SHOW with prefilled data.
+			show(extensionDataTextArea);
 			return;
 		}
 
@@ -1069,6 +1100,11 @@ export class IssueReporter extends Disposable {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 					if (matches[0].hasIssueUriRequestHandler) {
 						this.updateIssueReporterUri(matches[0]);
+					} if (matches[0].hasIssueDataProviders) {
+						// TODO
+						// If the current extension has issue data providers, we should use them to fill in the issue data
+						// const data = this.getIssueDataFromExtension(matches[0]);
+
 					} else {
 						this.validateSelectedExtension();
 						const title = (<HTMLInputElement>this.getElementById('issue-title')).value;
