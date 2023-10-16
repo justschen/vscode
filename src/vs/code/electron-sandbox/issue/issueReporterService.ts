@@ -469,6 +469,12 @@ export class IssueReporter extends Disposable {
 		return selectedExtension && selectedExtension.bugsUrl;
 	}
 
+	private getExtensionData(): string | MarkdownString | undefined {
+		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
+		return selectedExtension && selectedExtension.extensionData;
+	}
+
+
 	private searchVSCodeIssues(title: string, issueDescription?: string): void {
 		if (title) {
 			this.searchDuplicates(title, issueDescription);
@@ -728,10 +734,12 @@ export class IssueReporter extends Disposable {
 		hide(experimentsBlock);
 		hide(problemSource);
 		hide(extensionSelector);
+		hide(extensionDataTextArea);
 
 		show(problemSource);
 		show(titleTextArea);
 		show(descriptionTextArea);
+
 
 		if (fileOnExtension) {
 			show(extensionSelector);
@@ -747,16 +755,11 @@ export class IssueReporter extends Disposable {
 		}
 
 		if (fileOnExtension && selectedExtension?.hasIssueDataProviders) {
-			// hide(titleTextArea);
-			// hide(descriptionTextArea);
-			// reset(descriptionTitle, localize('handlesIssuesElsewhere', "This extension handles issues outside of VS Code"));
-			// reset(descriptionSubtitle, localize('elsewhereDescription', "The '{0}' extension prefers to use an external issue reporter. To be taken to that issue reporting experience, click the button below.", selectedExtension.displayName));
-			// this.previewButton.label = localize('openIssueReporter', "Open External Issue Reporter");
-			// use show, but with prefilled data.
-			// TODO
-			// SHOW with prefilled data.
+			const data = this.getExtensionData();
+			if (data) {
+				(extensionDataTextArea as HTMLTextAreaElement).value = data as string;
+			}
 			show(extensionDataTextArea);
-			return;
 		}
 
 		if (issueType === IssueType.Bug) {
@@ -1092,7 +1095,7 @@ export class IssueReporter extends Disposable {
 				extensionsSelector.selectedIndex = 0;
 			}
 
-			this.addEventListener('extension-selector', 'change', (e: Event) => {
+			this.addEventListener('extension-selector', 'change', async (e: Event) => {
 				const selectedExtensionId = (<HTMLInputElement>e.target).value;
 				const extensions = this.issueReporterModel.getData().allExtensions;
 				const matches = extensions.filter(extension => extension.id === selectedExtensionId);
@@ -1100,11 +1103,10 @@ export class IssueReporter extends Disposable {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 					if (matches[0].hasIssueUriRequestHandler) {
 						this.updateIssueReporterUri(matches[0]);
-					} if (matches[0].hasIssueDataProviders) {
-						// TODO
-						// If the current extension has issue data providers, we should use them to fill in the issue data
-						// const data = this.getIssueDataFromExtension(matches[0]);
-
+					} else if (matches[0].hasIssueDataProviders) {
+						const data = await this.getIssueDataFromExtension(matches[0]);
+						matches[0].extensionData = data;
+						this.issueReporterModel.update({ extensionData: data });
 					} else {
 						this.validateSelectedExtension();
 						const title = (<HTMLInputElement>this.getElementById('issue-title')).value;

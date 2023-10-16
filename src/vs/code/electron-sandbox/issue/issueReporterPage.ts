@@ -82,7 +82,15 @@ export default (): string => `
 			<textarea name="description" id="description" placeholder="${escape(localize('details', "Please enter details."))}" required></textarea>
 		</div>
 		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
+		<div class="instructions" id="issue-description-subtitle">
+			<!-- To be dynamically filled -->
+		</div>
+		<div class="block-info-text">
+			<textarea name="extension-data" id="extension-data" placeholder="${escape(localize('details', "Please enter details."))}" required></textarea>
+		</div>
+		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
 	</div>
+
 
 	<div class="system-info" id="block-container">
 		<div class="block block-system">

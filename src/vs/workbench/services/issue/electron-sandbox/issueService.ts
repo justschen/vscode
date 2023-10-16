@@ -77,6 +77,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 					id: extension.identifier.id,
 					isTheme,
 					isBuiltin,
+					extensionData: 'Extensions data loading',
 				};
 			}));
 		} catch (e) {
@@ -86,6 +87,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 				version: '0.0.0',
 				repositoryUrl: undefined,
 				bugsUrl: undefined,
+				extensionData: 'Extensions data loading',
 				displayName: `Extensions not loaded: ${e}`,
 				id: 'workbench.issue',
 				isTheme: false,

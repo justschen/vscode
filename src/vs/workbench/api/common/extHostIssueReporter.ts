@@ -40,18 +40,18 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 	}
 
 	async $getIssueReporterData(extensionId: string, token: CancellationToken): Promise<string | MarkdownString> {
-		if (this._IssueUriRequestHandlers.size === 0) {
+		if (this._IssueDataProviders.size === 0) {
 			throw new Error('No issue request handlers registered');
 		}
 
 		const provider = this._IssueDataProviders.get(extensionId);
 		if (!provider) {
-			throw new Error('Issue request handler not found');
+			throw new Error('Issue data provider not found');
 		}
 
 		const result = await provider.provideIssueData(token);
 		if (!result) {
-			throw new Error('Issue request handler returned no result');
+			throw new Error('Issue data provider returned no result');
 		}
 		return result;
 	}
@@ -68,6 +68,7 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 
 	registerIssueDataProvider(extension: IExtensionDescription, provider: IssueDataProvider): Disposable {
 		const extensionId = extension.identifier.value;
+		this._IssueDataProviders.set(extensionId, provider);
 		this._proxy.$registerIssueDataProvider(extensionId);
 		return new Disposable(() => {
 			// TODO

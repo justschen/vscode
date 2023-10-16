@@ -5,10 +5,13 @@
 
 import { isRemoteDiagnosticError, SystemInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { ISettingSearchResult, IssueReporterExtensionData, IssueType } from 'vs/platform/issue/common/issue';
+// eslint-disable-next-line local/code-import-patterns
+import { MarkdownString } from 'vscode';
 
 export interface IssueReporterData {
 	issueType: IssueType;
 	issueDescription?: string;
+	extensionData?: string | MarkdownString;
 
 	versionInfo?: any;
 	systemInfo?: SystemInfo;
@@ -73,6 +76,7 @@ export class IssueReporterModel {
 Type: <b>${this.getIssueTypeTitle()}</b>
 
 ${this._data.issueDescription}
+${this._data.extensionData}
 ${this.getExtensionVersion()}
 VS Code version: ${this._data.versionInfo && this._data.versionInfo.vscodeVersion}
 OS version: ${this._data.versionInfo && this._data.versionInfo.os}

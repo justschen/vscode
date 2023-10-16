@@ -403,20 +403,20 @@ export class IssueMainService implements IIssueMainService {
 		if (!window) {
 			throw new Error('Window not found');
 		}
-		const replyChannel = `vscode:triggerIssueUriRequestHandlerResponse${window.id}`;
+		const replyChannel = `vscode:triggerIssueDataProviderResponse${window.id}`;
 		return Promises.withAsyncBody<string | MarkdownString>(async (resolve, reject) => {
 
 			const cts = new CancellationTokenSource();
-			window.sendWhenReady('vscode:triggerIssueDataProvier', cts.token, { replyChannel, extensionId });
+			window.sendWhenReady('vscode:triggerIssueDataProvider', cts.token, { replyChannel, extensionId });
 
 			validatedIpcMain.once(replyChannel, (_: unknown, data: string) => {
-				// resolve(URI.parse(data));
+				resolve(data);
 			});
 
 			try {
 				await timeout(5000);
 				cts.cancel();
-				reject(new Error('Timed out waiting for issue reporter URI from issue data side'));
+				reject(new Error('Timed out waiting for issue reporter data'));
 			} finally {
 				validatedIpcMain.removeHandler(replyChannel);
 			}

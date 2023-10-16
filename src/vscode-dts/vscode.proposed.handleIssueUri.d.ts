@@ -19,10 +19,6 @@ declare module 'vscode' {
 		provideIssueData(token: CancellationToken): ProviderResult<string | MarkdownString>;
 	}
 
-	// interface IssueUrlProvider {
-	// 	provideIssueUrl(token: CancellationToken): ProviderResult<URL>;
-	// }
-
 	export namespace env {
 		/**
 		 * Register an {@link IssueUriRequestHandler}. By registering an issue uri request handler,
