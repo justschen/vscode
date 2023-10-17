@@ -172,6 +172,11 @@ textarea {
 	flex-grow: 1;
 }
 
+.block-info-text-extension {
+	display: flex;
+	flex-grow: 1;
+}
+
 #github-submit-btn {
 	flex-shrink: 0;
 	margin-left: auto;

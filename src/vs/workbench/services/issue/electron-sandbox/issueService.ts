@@ -51,7 +51,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		});
 		ipcRenderer.on('vscode:triggerIssueDataProvider', async (event: unknown, request: { replyChannel: string; extensionId: string }) => {
 			const result = await this.getIssueData(request.extensionId, CancellationToken.None);
-			ipcRenderer.send(request.replyChannel, result.toString());
+			ipcRenderer.send(request.replyChannel, result);
 		});
 	}
 

@@ -23,6 +23,7 @@ export interface IssueReporterData {
 	includeProcessInfo: boolean;
 	includeExtensions: boolean;
 	includeExperiments: boolean;
+	includeExtensionData: boolean;
 
 	numberOfThemeExtesions?: number;
 	allExtensions: IssueReporterExtensionData[];
@@ -50,6 +51,7 @@ export class IssueReporterModel {
 			includeProcessInfo: true,
 			includeExtensions: true,
 			includeExperiments: true,
+			includeExtensionData: true,
 			allExtensions: []
 		};
 
@@ -76,7 +78,6 @@ export class IssueReporterModel {
 Type: <b>${this.getIssueTypeTitle()}</b>
 
 ${this._data.issueDescription}
-${this._data.extensionData}
 ${this.getExtensionVersion()}
 VS Code version: ${this._data.versionInfo && this._data.versionInfo.vscodeVersion}
 OS version: ${this._data.versionInfo && this._data.versionInfo.os}
@@ -125,6 +126,12 @@ ${this.getInfos()}
 		let info = '';
 
 		if (this._data.issueType === IssueType.Bug || this._data.issueType === IssueType.PerformanceIssue) {
+			if (!this._data.fileOnMarketplace && this._data.includeExtensionData && this._data.extensionData) {
+				info += this.getExtensionData();
+			}
+		}
+
+		if (this._data.issueType === IssueType.Bug || this._data.issueType === IssueType.PerformanceIssue) {
 			if (!this._data.fileOnMarketplace && this._data.includeSystemInfo && this._data.systemInfo) {
 				info += this.generateSystemInfoMd();
 			}
@@ -154,6 +161,10 @@ ${this.getInfos()}
 		}
 
 		return info;
+	}
+
+	private getExtensionData(): string | MarkdownString {
+		return this._data.extensionData ? this._data.extensionData?.toString() : '';
 	}
 
 	private generateSystemInfoMd(): string {

@@ -56,7 +56,7 @@ export interface IssueReporterExtensionData {
 	displayName: string | undefined;
 	repositoryUrl: string | undefined;
 	bugsUrl: string | undefined;
-	extensionData: string | MarkdownString;
+	extensionData: string;
 	hasIssueUriRequestHandler?: boolean;
 	hasIssueDataProviders?: boolean;
 }

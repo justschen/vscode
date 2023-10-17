@@ -263,7 +263,7 @@ export class IssueReporter extends Disposable {
 			this.render();
 		});
 
-		(['includeSystemInfo', 'includeProcessInfo', 'includeWorkspaceInfo', 'includeExtensions', 'includeExperiments'] as const).forEach(elementId => {
+		(['includeSystemInfo', 'includeProcessInfo', 'includeWorkspaceInfo', 'includeExtensions', 'includeExperiments', 'includeExtensionData'] as const).forEach(elementId => {
 			this.addEventListener(elementId, 'click', (event: Event) => {
 				event.stopPropagation();
 				this.issueReporterModel.update({ [elementId]: !this.issueReporterModel.getData()[elementId] });
@@ -714,6 +714,7 @@ export class IssueReporter extends Disposable {
 		const workspaceBlock = document.querySelector('.block-workspace');
 		const extensionsBlock = document.querySelector('.block-extensions');
 		const experimentsBlock = document.querySelector('.block-experiments');
+		const extensionDataBlock = document.querySelector('.block-extension-data');
 
 		const problemSource = this.getElementById('problem-source')!;
 		const descriptionTitle = this.getElementById('issue-description-label')!;
@@ -735,6 +736,7 @@ export class IssueReporter extends Disposable {
 		hide(problemSource);
 		hide(extensionSelector);
 		hide(extensionDataTextArea);
+		hide(extensionDataBlock);
 
 		show(problemSource);
 		show(titleTextArea);
@@ -757,8 +759,9 @@ export class IssueReporter extends Disposable {
 		if (fileOnExtension && selectedExtension?.hasIssueDataProviders) {
 			const data = this.getExtensionData();
 			if (data) {
-				(extensionDataTextArea as HTMLTextAreaElement).value = data as string;
+				(extensionDataTextArea as HTMLTextAreaElement).value = data.toString();
 			}
+			show(extensionDataBlock);
 			show(extensionDataTextArea);
 		}
 
@@ -1105,7 +1108,11 @@ export class IssueReporter extends Disposable {
 						this.updateIssueReporterUri(matches[0]);
 					} else if (matches[0].hasIssueDataProviders) {
 						const data = await this.getIssueDataFromExtension(matches[0]);
-						matches[0].extensionData = data;
+						if (typeof data === 'string') {
+							matches[0].extensionData = data;
+						} else {
+							matches[0].extensionData = data.value;
+						}
 						this.issueReporterModel.update({ extensionData: data });
 					} else {
 						this.validateSelectedExtension();

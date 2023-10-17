@@ -11,6 +11,7 @@ const sendProcessInfoLabel = escape(localize('sendProcessInfo', "Include my curr
 const sendWorkspaceInfoLabel = escape(localize('sendWorkspaceInfo', "Include my workspace metadata"));
 const sendExtensionsLabel = escape(localize('sendExtensions', "Include my enabled extensions"));
 const sendExperimentsLabel = escape(localize('sendExperiments', "Include A/B experiment info"));
+const sendExtensionData = escape(localize('sendExtensionData', "Include Additional Extension info"));
 const reviewGuidanceLabel = localize( // intentionally not escaped because of its embedded tags
 	{
 		key: 'reviewGuidanceLabel',
@@ -85,7 +86,13 @@ export default (): string => `
 		<div class="instructions" id="issue-description-subtitle">
 			<!-- To be dynamically filled -->
 		</div>
-		<div class="block-info-text">
+		<div class="block block-extension-data">
+			<input class="sendData" aria-label="${sendExtensionData}" type="checkbox" id="includeExtensionData" checked/>
+			<label class="caption" for="includeExtensionData">
+				${sendExtensionData}
+			</label>
+			</div>
+		<div class="block-info-text-extension">
 			<textarea name="extension-data" id="extension-data" placeholder="${escape(localize('details', "Please enter details."))}" required></textarea>
 		</div>
 		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
