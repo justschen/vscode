@@ -5,13 +5,11 @@
 
 import { isRemoteDiagnosticError, SystemInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { ISettingSearchResult, IssueReporterExtensionData, IssueType } from 'vs/platform/issue/common/issue';
-// eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 export interface IssueReporterData {
 	issueType: IssueType;
 	issueDescription?: string;
-	extensionData?: string | MarkdownString;
+	extensionData?: string;
 
 	versionInfo?: any;
 	systemInfo?: SystemInfo;
@@ -163,7 +161,7 @@ ${this.getInfos()}
 		return info;
 	}
 
-	private getExtensionData(): string | MarkdownString {
+	private getExtensionData(): string {
 		return this._data.extensionData ? this._data.extensionData?.toString() : '';
 	}
 

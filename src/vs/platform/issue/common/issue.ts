@@ -8,8 +8,6 @@ import { URI } from 'vs/base/common/uri';
 import { ISandboxConfiguration } from 'vs/base/parts/sandbox/common/sandboxTypes';
 import { PerformanceInfo, SystemInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
-// eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 // Since data sent through the service is serialized to JSON, functions will be lost, so Color objects
 // should not be sent as their 'toString' method will be stripped. Instead convert to strings before sending.
@@ -133,6 +131,6 @@ export interface IIssueMainService {
 	$showConfirmCloseDialog(): Promise<void>;
 	$showClipboardDialog(): Promise<boolean>;
 	$getIssueReporterUri(extensionId: string): Promise<URI>;
-	$getIssueReporterData(extensionId: string): Promise<string | MarkdownString>;
+	$getIssueReporterData(extensionId: string): Promise<string>;
 	$closeReporter(): Promise<void>;
 }

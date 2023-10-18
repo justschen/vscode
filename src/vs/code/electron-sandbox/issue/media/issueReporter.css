@@ -44,6 +44,15 @@ label {
 	margin-bottom: .5em;
 }
 
+span.extension-icon {
+	font-size: 200% !important;
+	color: red;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	/* transform: translate(-50%, -50%); */
+}
+
 /**
  * Forms
  */

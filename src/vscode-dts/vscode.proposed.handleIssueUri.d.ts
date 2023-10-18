@@ -15,8 +15,10 @@ declare module 'vscode' {
 	}
 
 	export interface IssueDataProvider {
-		provideIssueTemplate(token: CancellationToken): ProviderResult<string | MarkdownString>;
-		provideIssueData(token: CancellationToken): ProviderResult<string | MarkdownString>;
+		/**
+		 * Provide the data to be used in the issue reporter.
+		 */
+		provideIssueData(token: CancellationToken): ProviderResult<string>;
 	}
 
 	export namespace env {

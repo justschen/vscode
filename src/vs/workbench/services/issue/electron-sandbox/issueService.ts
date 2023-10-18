@@ -25,7 +25,6 @@ import { IWorkbenchExtensionEnablementService } from 'vs/workbench/services/exte
 import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
 import { IIssueDataProvider, IIssueUriRequestHandler, IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
 // eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 export class NativeIssueService implements IWorkbenchIssueService {
 	declare readonly _serviceBrand: undefined;
@@ -175,7 +174,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		};
 	}
 
-	private async getIssueData(extensionId: string, token: CancellationToken): Promise<string | MarkdownString> {
+	private async getIssueData(extensionId: string, token: CancellationToken): Promise<string> {
 		const provider = this._providers.get(extensionId);
 		if (!provider) {
 			throw new Error(`No issue uri request provider registered for extension '${extensionId}'`);

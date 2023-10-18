@@ -12,8 +12,6 @@ import { IssueReporterData } from 'vs/platform/issue/common/issue';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
 import { IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
-// eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 const OpenIssueReporterActionId = 'workbench.action.openIssueReporter';
 const OpenIssueReporterApiId = 'vscode.openIssueReporter';
@@ -56,7 +54,7 @@ interface OpenIssueReporterArgs {
 	readonly extensionId?: string;
 	readonly issueTitle?: string;
 	readonly issueBody?: string;
-	readonly extensionData?: string | MarkdownString;
+	readonly extensionData?: string;
 }
 
 export class BaseIssueContribution implements IWorkbenchContribution {

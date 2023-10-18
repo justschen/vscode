@@ -8,7 +8,7 @@ import { UriComponents } from 'vs/base/common/uri';
 import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 import { ExtHostIssueReporterShape, IMainContext, MainContext, MainThreadIssueReporterShape } from 'vs/workbench/api/common/extHost.protocol';
 import { Disposable } from 'vs/workbench/api/common/extHostTypes';
-import type { IssueDataProvider, IssueUriRequestHandler, MarkdownString } from 'vscode';
+import type { IssueDataProvider, IssueUriRequestHandler } from 'vscode';
 
 export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 	private _IssueUriRequestHandlers: Map<string, IssueUriRequestHandler> = new Map();
@@ -39,7 +39,7 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 		return result;
 	}
 
-	async $getIssueReporterData(extensionId: string, token: CancellationToken): Promise<string | MarkdownString> {
+	async $getIssueReporterData(extensionId: string, token: CancellationToken): Promise<string> {
 		if (this._IssueDataProviders.size === 0) {
 			throw new Error('No issue request handlers registered');
 		}

@@ -30,8 +30,6 @@ import { UtilityProcess } from 'vs/platform/utilityProcess/electron-main/utility
 import { zoomLevelToZoomFactor } from 'vs/platform/window/common/window';
 import { IWindowState } from 'vs/platform/window/electron-main/window';
 import { IWindowsMainService } from 'vs/platform/windows/electron-main/windows';
-// eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 const processExplorerWindowState = 'issue.processExplorerWindowState';
 
@@ -395,7 +393,7 @@ export class IssueMainService implements IIssueMainService {
 		});
 	}
 
-	async $getIssueReporterData(extensionId: string): Promise<string | MarkdownString> {
+	async $getIssueReporterData(extensionId: string): Promise<string> {
 		if (!this.issueReporterParentWindow) {
 			throw new Error('Issue reporter window not available');
 		}
@@ -404,7 +402,7 @@ export class IssueMainService implements IIssueMainService {
 			throw new Error('Window not found');
 		}
 		const replyChannel = `vscode:triggerIssueDataProviderResponse${window.id}`;
-		return Promises.withAsyncBody<string | MarkdownString>(async (resolve, reject) => {
+		return Promises.withAsyncBody<string>(async (resolve, reject) => {
 
 			const cts = new CancellationTokenSource();
 			window.sendWhenReady('vscode:triggerIssueDataProvider', cts.token, { replyChannel, extensionId });
@@ -414,9 +412,9 @@ export class IssueMainService implements IIssueMainService {
 			});
 
 			try {
-				await timeout(20000);
+				await timeout(5000);
 				cts.cancel();
-				reject(new Error('Timed out waiting for issue reporter data'));
+				resolve('Error: Extension timed out waiting for issue reporter data');
 			} finally {
 				validatedIpcMain.removeHandler(replyChannel);
 			}

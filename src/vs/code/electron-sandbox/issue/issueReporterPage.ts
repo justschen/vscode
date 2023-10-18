@@ -93,7 +93,7 @@ export default (): string => `
 			</label>
 			</div>
 		<div class="block-info-text-extension">
-			<textarea readonly name="extension-data" id="extension-data" placeholder="${escape(localize('details', "Please enter details."))}" required></textarea>
+			<textarea name="extension-data" id="extension-data" placeholder="${escape(localize('details', "Please enter details."))}"></textarea>
 		</div>
 		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
 	</div>

@@ -13,6 +13,7 @@ import { CancellationError } from 'vs/base/common/errors';
 import { Disposable } from 'vs/base/common/lifecycle';
 import { isLinuxSnap, isMacintosh } from 'vs/base/common/platform';
 import { escape } from 'vs/base/common/strings';
+import { ThemeIcon } from 'vs/base/common/themables';
 import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from 'vs/code/electron-sandbox/issue/issueReporterModel';
 import { localize } from 'vs/nls';
 import { isRemoteDiagnosticError } from 'vs/platform/diagnostics/common/diagnostics';
@@ -20,8 +21,6 @@ import { IIssueMainService, IssueReporterData, IssueReporterExtensionData, Issue
 import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
 import { INativeHostService } from 'vs/platform/native/common/native';
 import { applyZoom, zoomIn, zoomOut } from 'vs/platform/window/electron-sandbox/window';
-// eslint-disable-next-line local/code-import-patterns
-import { MarkdownString } from 'vscode';
 
 // GitHub has let us know that we could up our limit here to 8k. We chose 7500 to play it safe.
 // ref https://github.com/microsoft/vscode/issues/159191
@@ -232,12 +231,13 @@ export class IssueReporter extends Disposable {
 			extension.bugsUrl = uri.toString(true);
 		} catch (e) {
 			extension.hasIssueUriRequestHandler = false;
+			console.log('issue handler failed, b ack to old experience');
 			// The issue handler failed so fall back to old issue reporter experience.
 			this.renderBlocks();
 		}
 	}
 
-	private async getIssueDataFromExtension(extension: IssueReporterExtensionData): Promise<string | MarkdownString> {
+	private async getIssueDataFromExtension(extension: IssueReporterExtensionData): Promise<string> {
 		try {
 			const data = await this.issueMainService.$getIssueReporterData(extension.id);
 			return data;
@@ -469,7 +469,7 @@ export class IssueReporter extends Disposable {
 		return selectedExtension && selectedExtension.bugsUrl;
 	}
 
-	private getExtensionData(): string | MarkdownString | undefined {
+	private getExtensionData(): string | undefined {
 		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 		return selectedExtension && selectedExtension.extensionData;
 	}
@@ -725,6 +725,7 @@ export class IssueReporter extends Disposable {
 		const descriptionTextArea = this.getElementById('description')!;
 
 		const extensionDataTextArea = this.getElementById('extension-data')!;
+		const extensionLoading = this.getElementById('loading-icon')!;
 
 		// Hide all by default
 		hide(blockContainer);
@@ -737,6 +738,7 @@ export class IssueReporter extends Disposable {
 		hide(extensionSelector);
 		hide(extensionDataTextArea);
 		hide(extensionDataBlock);
+		hide(extensionLoading);
 
 		show(problemSource);
 		show(titleTextArea);
@@ -761,6 +763,7 @@ export class IssueReporter extends Disposable {
 			if (data) {
 				(extensionDataTextArea as HTMLTextAreaElement).value = data.toString();
 			}
+			(extensionDataTextArea as HTMLTextAreaElement).readOnly = true;
 			show(extensionDataBlock);
 			show(extensionDataTextArea);
 		}
@@ -1107,13 +1110,15 @@ export class IssueReporter extends Disposable {
 					if (matches[0].hasIssueUriRequestHandler) {
 						this.updateIssueReporterUri(matches[0]);
 					} else if (matches[0].hasIssueDataProviders) {
+						this.setLoading();
 						const data = await this.getIssueDataFromExtension(matches[0]);
 						if (typeof data === 'string') {
 							matches[0].extensionData = data;
 						} else {
-							matches[0].extensionData = data.value;
+							console.log('return error here');
 						}
 						this.issueReporterModel.update({ extensionData: data });
+						this.removeLoading();
 					} else {
 						this.validateSelectedExtension();
 						const title = (<HTMLInputElement>this.getElementById('issue-title')).value;
@@ -1153,6 +1158,19 @@ export class IssueReporter extends Disposable {
 			this.setExtensionValidationMessage();
 			this.previewButton.enabled = false;
 		}
+	}
+
+	private setLoading() {
+		const widget = document.createElement('div'); const previewIcon = document.createElement('span');
+		previewIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+		widget.appendChild(previewIcon);
+		this.previewButton.label = 'Loading Extension Data...';
+		this.previewButton.enabled = false;
+	}
+
+	private removeLoading() {
+		this.previewButton.enabled = true;
+		this.updatePreviewButtonState();
 	}
 
 	private setExtensionValidationMessage(): void {
