@@ -414,7 +414,7 @@ export class IssueMainService implements IIssueMainService {
 			});
 
 			try {
-				await timeout(5000);
+				await timeout(20000);
 				cts.cancel();
 				reject(new Error('Timed out waiting for issue reporter data'));
 			} finally {
