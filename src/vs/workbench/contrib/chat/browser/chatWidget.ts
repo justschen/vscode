@@ -265,7 +265,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			const lastItem = treeItems[treeItems.length - 1]?.element;
 			if (lastItem && isResponseVM(lastItem) && lastItem.isComplete) {
-				this.renderFollowups(lastItem.replyFollowups);
+				this.renderFollowups(lastItem.replyFollowups, lastItem);
 			} else if (lastItem && isWelcomeVM(lastItem)) {
 				this.renderFollowups(lastItem.sampleQuestions);
 			} else {
@@ -274,8 +274,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}
 	}
 
-	private async renderFollowups(items?: IChatReplyFollowup[]): Promise<void> {
-		this.inputPart.renderFollowups(items);
+	private async renderFollowups(items: IChatReplyFollowup[] | undefined, response?: IChatResponseViewModel): Promise<void> {
+		this.inputPart.renderFollowups(items, response);
 
 		if (this.bodyDimension) {
 			this.layout(this.bodyDimension.height, this.bodyDimension.width);
@@ -411,9 +411,29 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this.inputPart.render(container, '', this);
 
 		this._register(this.inputPart.onDidFocus(() => this._onDidFocus.fire()));
-		this._register(this.inputPart.onDidAcceptFollowup(followup => {
-			// this.chatService.notifyUserAction
-			this.acceptInput(followup.message);
+		this._register(this.inputPart.onDidAcceptFollowup(e => {
+			if (!this.viewModel) {
+				return;
+			}
+
+			this.acceptInput(e.followup.message);
+
+			if (!e.response) {
+				// Followups can be shown by the welcome message, then there is no response associated.
+				// At some point we probably want telemetry for these too.
+				return;
+			}
+
+			this.chatService.notifyUserAction({
+				providerId: this.viewModel.providerId,
+				sessionId: this.viewModel.sessionId,
+				requestId: e.response.requestId,
+				agentId: e.response?.agent?.id,
+				action: {
+					kind: 'followUp',
+					followup: e.followup
+				},
+			});
 		}));
 		this._register(this.inputPart.onDidChangeHeight(() => this.bodyDimension && this.layout(this.bodyDimension.height, this.bodyDimension.width)));
 	}
