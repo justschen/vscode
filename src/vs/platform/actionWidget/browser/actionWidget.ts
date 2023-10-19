@@ -6,10 +6,8 @@ import * as dom from 'vs/base/browser/dom';
 import { ActionBar } from 'vs/base/browser/ui/actionbar/actionbar';
 import { IAnchor } from 'vs/base/browser/ui/contextview/contextview';
 import { IAction } from 'vs/base/common/actions';
-import { Codicon } from 'vs/base/common/codicons';
 import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from 'vs/base/common/lifecycle';
-import { ThemeIcon } from 'vs/base/common/themables';
 import 'vs/css!./actionWidget';
 import { localize } from 'vs/nls';
 import { ActionList, IActionListDelegate, IActionListItem, acceptSelectedActionCommand, previewSelectedActionCommand } from 'vs/platform/actionWidget/browser/actionList';
@@ -100,9 +98,6 @@ class ActionWidgetService extends Disposable implements IActionWidgetService {
 
 	private _renderWidget(element: HTMLElement, list: ActionList<unknown>, actionBarActions: readonly IAction[]): IDisposable {
 		const widget = document.createElement('div');
-		const previewIcon = document.createElement('span');
-		previewIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-		widget.appendChild(previewIcon);
 		widget.classList.add('action-widget');
 		element.appendChild(widget);
 
