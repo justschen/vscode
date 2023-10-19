@@ -239,6 +239,7 @@ export class IssueReporter extends Disposable {
 	private async getIssueDataFromExtension(extension: IssueReporterExtensionData): Promise<string> {
 		try {
 			const data = await this.issueMainService.$getIssueReporterData(extension.id);
+			extension.extensionData = data;
 			return data;
 		} catch (e) {
 			extension.hasIssueDataProviders = false;
@@ -248,14 +249,16 @@ export class IssueReporter extends Disposable {
 		}
 	}
 
-	private async getIssueTemplateFromExtension(extension: IssueReporterExtensionData): Promise<void> {
+	private async getIssueTemplateFromExtension(extension: IssueReporterExtensionData): Promise<string> {
 		try {
 			const data = await this.issueMainService.$getIssueReporterTemplate(extension.id);
 			extension.extensionTemplate = data;
+			return data;
 		} catch (e) {
 			extension.hasIssueDataProviders = false;
 			// The issue handler failed so fall back to old issue reporter experience.
 			this.renderBlocks();
+			throw e;
 		}
 	}
 
@@ -771,10 +774,6 @@ export class IssueReporter extends Disposable {
 		}
 
 		if (fileOnExtension && selectedExtension?.hasIssueDataProviders) {
-			const template = this.getExtensionTemplate();
-			if (template) {
-				(descriptionTextArea as HTMLTextAreaElement).value = template;
-			}
 			const data = this.getExtensionData();
 			if (data) {
 				(extensionDataTextArea as HTMLTextAreaElement).value = data.toString();
@@ -1127,7 +1126,11 @@ export class IssueReporter extends Disposable {
 					if (matches[0].hasIssueUriRequestHandler) {
 						this.updateIssueReporterUri(matches[0]);
 					} else if (matches[0].hasIssueDataProviders) {
-						this.getIssueTemplateFromExtension(matches[0]);
+						const template = await this.getIssueTemplateFromExtension(matches[0]);
+						const descriptionTextArea = this.getElementById('description')!;
+						const fullTextArea = (descriptionTextArea as HTMLTextAreaElement).value += template;
+						this.issueReporterModel.update({ issueDescription: fullTextArea });
+
 						this.setLoading();
 						const data = await this.getIssueDataFromExtension(matches[0]);
 						if (typeof data === 'string') {

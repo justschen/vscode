@@ -87,12 +87,12 @@ export default (): string => `
 			<!-- To be dynamically filled -->
 		</div>
 		<div class="block block-extension-data">
-			<input class="sendData" aria-label="${sendExtensionData}" type="checkbox" id="includeExtensionData" checked/>
-			<label class="caption" for="includeExtensionData">
+			<input class="send-extension-data" aria-label="${sendExtensionData}" type="checkbox" id="includeExtensionData" checked/>
+			<label class="extension-caption" for="includeExtensionData">
 				${sendExtensionData}
 			</label>
-			</div>
-		<div class="block-info-text-extension">
+		</div>
+		<div class="block-info-text">
 			<textarea name="extension-data" id="extension-data" placeholder="${escape(localize('details', "Please enter details."))}"></textarea>
 		</div>
 		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
