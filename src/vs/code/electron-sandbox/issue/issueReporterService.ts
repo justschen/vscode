@@ -5,6 +5,7 @@
 import { $, reset, windowOpenNoOpener } from 'vs/base/browser/dom';
 import { Button, unthemedButtonStyles } from 'vs/base/browser/ui/button/button';
 import { renderIcon } from 'vs/base/browser/ui/iconLabel/iconLabels';
+import { ProgressBar } from 'vs/base/browser/ui/progressbar/progressbar';
 import { Delayer } from 'vs/base/common/async';
 import { Codicon } from 'vs/base/common/codicons';
 import { groupBy } from 'vs/base/common/collections';
@@ -13,7 +14,6 @@ import { CancellationError } from 'vs/base/common/errors';
 import { Disposable } from 'vs/base/common/lifecycle';
 import { isLinuxSnap, isMacintosh } from 'vs/base/common/platform';
 import { escape } from 'vs/base/common/strings';
-import { ThemeIcon } from 'vs/base/common/themables';
 import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from 'vs/code/electron-sandbox/issue/issueReporterModel';
 import { localize } from 'vs/nls';
 import { isRemoteDiagnosticError } from 'vs/platform/diagnostics/common/diagnostics';
@@ -47,6 +47,8 @@ export class IssueReporter extends Disposable {
 	private hasBeenSubmitted = false;
 	private delayedSubmit = new Delayer<void>(300);
 
+	private progress!: ProgressBar;
+
 	private readonly previewButton!: Button;
 
 	constructor(
@@ -70,6 +72,7 @@ export class IssueReporter extends Disposable {
 
 		const issueReporterElement = this.getElementById('issue-reporter');
 		if (issueReporterElement) {
+			this.progress = this._register(new ProgressBar(issueReporterElement));
 			this.previewButton = new Button(issueReporterElement, unthemedButtonStyles);
 			this.updatePreviewButtonState();
 		}
@@ -1170,16 +1173,16 @@ export class IssueReporter extends Disposable {
 	}
 
 	private setLoading() {
+		this.progress.infinite().show();
+
 		this.previewButton.label = 'Loading Extension Data...';
-		const previewIcon2 = document.createElement('span');
-		previewIcon2.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-		this.previewButton.element.appendChild(previewIcon2);
 		this.previewButton.enabled = false;
 	}
 
 	private removeLoading() {
 		this.previewButton.enabled = true;
 		this.updatePreviewButtonState();
+		this.progress.done().hide();
 	}
 
 	private setExtensionValidationMessage(): void {
