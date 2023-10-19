@@ -1177,13 +1177,6 @@ export class IssueReporter extends Disposable {
 	}
 
 	private setLoading() {
-		const widget = document.createElement('div');
-		const previewIcon = document.createElement('span');
-		previewIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-		previewIcon.innerText = 'Loading Extension Data...';
-		widget.appendChild(previewIcon);
-
-		document.body.appendChild(widget);
 		this.previewButton.label = 'Loading Extension Data...';
 		const previewIcon2 = document.createElement('span');
 		previewIcon2.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');

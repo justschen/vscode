@@ -6,13 +6,13 @@
 import * as nls from 'vs/nls';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
+import { LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { Extensions, IWorkbenchContributionsRegistry } from 'vs/workbench/common/contributions';
-import { BaseIssueContribution } from 'vs/workbench/contrib/issue/common/issue.contribution';
 import { WebIssueService } from 'vs/workbench/services/issue/browser/issueService';
 import { IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
-import { LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+import { BaseIssueContribution } from 'vs/workbench/contrib/issue/common/issue.contribution';
 
 class WebIssueContribution extends BaseIssueContribution {
 	constructor(@IProductService productService: IProductService) {
