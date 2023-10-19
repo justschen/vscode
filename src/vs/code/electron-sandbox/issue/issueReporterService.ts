@@ -283,8 +283,6 @@ export class IssueReporter extends Disposable {
 			});
 		});
 
-
-
 		const showInfoElements = document.getElementsByClassName('showInfo');
 		for (let i = 0; i < showInfoElements.length; i++) {
 			const showInfo = showInfoElements.item(i)!;
@@ -486,12 +484,6 @@ export class IssueReporter extends Disposable {
 		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 		return selectedExtension && selectedExtension.extensionData;
 	}
-
-	private getExtensionTemplate(): string | undefined {
-		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
-		return selectedExtension && selectedExtension.extensionTemplate;
-	}
-
 
 	private searchVSCodeIssues(title: string, issueDescription?: string): void {
 		if (title) {
@@ -782,7 +774,6 @@ export class IssueReporter extends Disposable {
 			show(extensionDataBlock);
 			show(extensionDataTextArea);
 		}
-
 
 		if (issueType === IssueType.Bug) {
 			if (!fileOnMarketplace) {
@@ -1130,7 +1121,6 @@ export class IssueReporter extends Disposable {
 						const descriptionTextArea = this.getElementById('description')!;
 						const fullTextArea = (descriptionTextArea as HTMLTextAreaElement).value += template;
 						this.issueReporterModel.update({ issueDescription: fullTextArea });
-
 						this.setLoading();
 						const data = await this.getIssueDataFromExtension(matches[0]);
 						if (typeof data === 'string') {

@@ -10,12 +10,12 @@ import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from 'vs/base/common/lifecycle';
 import 'vs/css!./actionWidget';
 import { localize } from 'vs/nls';
-import { ActionList, IActionListDelegate, IActionListItem, acceptSelectedActionCommand, previewSelectedActionCommand } from 'vs/platform/actionWidget/browser/actionList';
+import { acceptSelectedActionCommand, ActionList, IActionListDelegate, IActionListItem, previewSelectedActionCommand } from 'vs/platform/actionWidget/browser/actionList';
 import { Action2, registerAction2 } from 'vs/platform/actions/common/actions';
 import { IContextKeyService, RawContextKey } from 'vs/platform/contextkey/common/contextkey';
 import { IContextViewService } from 'vs/platform/contextview/browser/contextView';
 import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
-import { IInstantiationService, ServicesAccessor, createDecorator } from 'vs/platform/instantiation/common/instantiation';
+import { createDecorator, IInstantiationService, ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
 import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
 import { inputActiveOptionBackground, registerColor } from 'vs/platform/theme/common/colorRegistry';
 

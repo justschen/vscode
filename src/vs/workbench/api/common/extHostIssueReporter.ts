@@ -68,7 +68,7 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 
 		const result = await provider.provideIssueTemplate(token);
 		if (!result) {
-			throw new Error('Issue data provider returned no result');
+			throw new Error('Issue template provider returned no result');
 		}
 		return result;
 	}

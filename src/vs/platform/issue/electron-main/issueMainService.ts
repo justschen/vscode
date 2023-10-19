@@ -28,7 +28,7 @@ import { IIPCObjectUrl, IProtocolMainService } from 'vs/platform/protocol/electr
 import { IStateService } from 'vs/platform/state/node/state';
 import { UtilityProcess } from 'vs/platform/utilityProcess/electron-main/utilityProcess';
 import { zoomLevelToZoomFactor } from 'vs/platform/window/common/window';
-import { IWindowState } from 'vs/platform/window/electron-main/window';
+import { ICodeWindow, IWindowState } from 'vs/platform/window/electron-main/window';
 import { IWindowsMainService } from 'vs/platform/windows/electron-main/windows';
 
 const processExplorerWindowState = 'issue.processExplorerWindowState';
@@ -365,7 +365,7 @@ export class IssueMainService implements IIssueMainService {
 		return false;
 	}
 
-	async $getIssueReporterUri(extensionId: string): Promise<URI> {
+	issueReporterWindowCheck(): ICodeWindow {
 		if (!this.issueReporterParentWindow) {
 			throw new Error('Issue reporter window not available');
 		}
@@ -373,6 +373,12 @@ export class IssueMainService implements IIssueMainService {
 		if (!window) {
 			throw new Error('Window not found');
 		}
+		return window;
+	}
+
+
+	async $getIssueReporterUri(extensionId: string): Promise<URI> {
+		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerIssueUriRequestHandlerResponse${window.id}`;
 		return Promises.withAsyncBody<URI>(async (resolve, reject) => {
 
@@ -394,13 +400,7 @@ export class IssueMainService implements IIssueMainService {
 	}
 
 	async $getIssueReporterData(extensionId: string): Promise<string> {
-		if (!this.issueReporterParentWindow) {
-			throw new Error('Issue reporter window not available');
-		}
-		const window = this.windowsMainService.getWindowById(this.issueReporterParentWindow.id);
-		if (!window) {
-			throw new Error('Window not found');
-		}
+		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerIssueDataProviderResponse${window.id}`;
 		return Promises.withAsyncBody<string>(async (resolve) => {
 
@@ -422,13 +422,7 @@ export class IssueMainService implements IIssueMainService {
 	}
 
 	async $getIssueReporterTemplate(extensionId: string): Promise<string> {
-		if (!this.issueReporterParentWindow) {
-			throw new Error('Issue reporter window not available');
-		}
-		const window = this.windowsMainService.getWindowById(this.issueReporterParentWindow.id);
-		if (!window) {
-			throw new Error('Window not found');
-		}
+		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerIssueDataTemplateResponse${window.id}`;
 		return Promises.withAsyncBody<string>(async (resolve) => {
 

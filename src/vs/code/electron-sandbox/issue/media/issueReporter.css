@@ -44,15 +44,6 @@ label {
 	margin-bottom: .5em;
 }
 
-span.codicon-modifier-spin {
-	font-size: 200% !important;
-	color: red;
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	/* transform: translate(-50%, -50%); */
-}
-
 /**
  * Forms
  */
@@ -184,7 +175,6 @@ textarea {
 .block-extension-data {
 	margin-top: 10px;
 }
-
 
 #github-submit-btn {
 	flex-shrink: 0;
