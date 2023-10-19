@@ -54,7 +54,8 @@ export interface IssueReporterExtensionData {
 	displayName: string | undefined;
 	repositoryUrl: string | undefined;
 	bugsUrl: string | undefined;
-	extensionData: string;
+	extensionData?: string;
+	extensionTemplate?: string;
 	hasIssueUriRequestHandler?: boolean;
 	hasIssueDataProviders?: boolean;
 }
@@ -132,5 +133,6 @@ export interface IIssueMainService {
 	$showClipboardDialog(): Promise<boolean>;
 	$getIssueReporterUri(extensionId: string): Promise<URI>;
 	$getIssueReporterData(extensionId: string): Promise<string>;
+	$getIssueReporterTemplate(extensionId: string): Promise<string>;
 	$closeReporter(): Promise<void>;
 }

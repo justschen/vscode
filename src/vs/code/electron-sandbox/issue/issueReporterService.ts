@@ -231,7 +231,6 @@ export class IssueReporter extends Disposable {
 			extension.bugsUrl = uri.toString(true);
 		} catch (e) {
 			extension.hasIssueUriRequestHandler = false;
-			console.log('issue handler failed, b ack to old experience');
 			// The issue handler failed so fall back to old issue reporter experience.
 			this.renderBlocks();
 		}
@@ -246,6 +245,17 @@ export class IssueReporter extends Disposable {
 			// The issue handler failed so fall back to old issue reporter experience.
 			this.renderBlocks();
 			throw e;
+		}
+	}
+
+	private async getIssueTemplateFromExtension(extension: IssueReporterExtensionData): Promise<void> {
+		try {
+			const data = await this.issueMainService.$getIssueReporterTemplate(extension.id);
+			extension.extensionTemplate = data;
+		} catch (e) {
+			extension.hasIssueDataProviders = false;
+			// The issue handler failed so fall back to old issue reporter experience.
+			this.renderBlocks();
 		}
 	}
 
@@ -472,6 +482,11 @@ export class IssueReporter extends Disposable {
 	private getExtensionData(): string | undefined {
 		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 		return selectedExtension && selectedExtension.extensionData;
+	}
+
+	private getExtensionTemplate(): string | undefined {
+		const selectedExtension = this.issueReporterModel.getData().selectedExtension;
+		return selectedExtension && selectedExtension.extensionTemplate;
 	}
 
 
@@ -725,7 +740,6 @@ export class IssueReporter extends Disposable {
 		const descriptionTextArea = this.getElementById('description')!;
 
 		const extensionDataTextArea = this.getElementById('extension-data')!;
-		const extensionLoading = this.getElementById('loading-icon')!;
 
 		// Hide all by default
 		hide(blockContainer);
@@ -738,12 +752,10 @@ export class IssueReporter extends Disposable {
 		hide(extensionSelector);
 		hide(extensionDataTextArea);
 		hide(extensionDataBlock);
-		hide(extensionLoading);
 
 		show(problemSource);
 		show(titleTextArea);
 		show(descriptionTextArea);
-
 
 		if (fileOnExtension) {
 			show(extensionSelector);
@@ -759,6 +771,10 @@ export class IssueReporter extends Disposable {
 		}
 
 		if (fileOnExtension && selectedExtension?.hasIssueDataProviders) {
+			const template = this.getExtensionTemplate();
+			if (template) {
+				(descriptionTextArea as HTMLTextAreaElement).value = template;
+			}
 			const data = this.getExtensionData();
 			if (data) {
 				(extensionDataTextArea as HTMLTextAreaElement).value = data.toString();
@@ -767,6 +783,7 @@ export class IssueReporter extends Disposable {
 			show(extensionDataBlock);
 			show(extensionDataTextArea);
 		}
+
 
 		if (issueType === IssueType.Bug) {
 			if (!fileOnMarketplace) {
@@ -1110,12 +1127,11 @@ export class IssueReporter extends Disposable {
 					if (matches[0].hasIssueUriRequestHandler) {
 						this.updateIssueReporterUri(matches[0]);
 					} else if (matches[0].hasIssueDataProviders) {
+						this.getIssueTemplateFromExtension(matches[0]);
 						this.setLoading();
 						const data = await this.getIssueDataFromExtension(matches[0]);
 						if (typeof data === 'string') {
 							matches[0].extensionData = data;
-						} else {
-							console.log('return error here');
 						}
 						this.issueReporterModel.update({ extensionData: data });
 						this.removeLoading();
@@ -1161,10 +1177,17 @@ export class IssueReporter extends Disposable {
 	}
 
 	private setLoading() {
-		const widget = document.createElement('div'); const previewIcon = document.createElement('span');
+		const widget = document.createElement('div');
+		const previewIcon = document.createElement('span');
 		previewIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+		previewIcon.innerText = 'Loading Extension Data...';
 		widget.appendChild(previewIcon);
+
+		document.body.appendChild(widget);
 		this.previewButton.label = 'Loading Extension Data...';
+		const previewIcon2 = document.createElement('span');
+		previewIcon2.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+		this.previewButton.element.appendChild(previewIcon2);
 		this.previewButton.enabled = false;
 	}
 

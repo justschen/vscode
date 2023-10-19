@@ -42,6 +42,10 @@ export class MainThreadIssueReporter extends Disposable implements MainThreadIss
 			provideIssueExtensionData: async (token: CancellationToken) => {
 				const parts = await this._proxy.$getIssueReporterData(extensionId, token);
 				return parts;
+			},
+			provideIssueExtensionTemplate: async (token: CancellationToken) => {
+				const parts = await this._proxy.$getIssueReporterTemplate(extensionId, token);
+				return parts;
 			}
 		};
 		this._registrations.set(extensionId, this._issueService.registerIssueDataProvider(extensionId, provider));

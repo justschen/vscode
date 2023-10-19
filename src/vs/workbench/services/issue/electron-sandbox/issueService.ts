@@ -52,6 +52,10 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			const result = await this.getIssueData(request.extensionId, CancellationToken.None);
 			ipcRenderer.send(request.replyChannel, result);
 		});
+		ipcRenderer.on('vscode:triggerIssueDataTemplate', async (event: unknown, request: { replyChannel: string; extensionId: string }) => {
+			const result = await this.getIssueTemplate(request.extensionId, CancellationToken.None);
+			ipcRenderer.send(request.replyChannel, result);
+		});
 	}
 
 	async openReporter(dataOverrides: Partial<IssueReporterData> = {}): Promise<void> {
@@ -181,6 +185,15 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		}
 		return provider.provideIssueExtensionData(token);
 	}
+
+	private async getIssueTemplate(extensionId: string, token: CancellationToken): Promise<string> {
+		const provider = this._providers.get(extensionId);
+		if (!provider) {
+			throw new Error(`No issue uri request provider registered for extension '${extensionId}'`);
+		}
+		return provider.provideIssueExtensionTemplate(token);
+	}
+
 }
 
 export function getIssueReporterStyles(theme: IColorTheme): IssueReporterStyles {

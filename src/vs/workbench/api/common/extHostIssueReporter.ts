@@ -56,6 +56,23 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 		return result;
 	}
 
+	async $getIssueReporterTemplate(extensionId: string, token: CancellationToken): Promise<string> {
+		if (this._IssueDataProviders.size === 0) {
+			throw new Error('No issue request handlers registered');
+		}
+
+		const provider = this._IssueDataProviders.get(extensionId);
+		if (!provider) {
+			throw new Error('Issue data provider not found');
+		}
+
+		const result = await provider.provideIssueTemplate(token);
+		if (!result) {
+			throw new Error('Issue data provider returned no result');
+		}
+		return result;
+	}
+
 	registerIssueUriRequestHandler(extension: IExtensionDescription, provider: IssueUriRequestHandler): Disposable {
 		const extensionId = extension.identifier.value;
 		this._IssueUriRequestHandlers.set(extensionId, provider);

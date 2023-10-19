@@ -402,10 +402,38 @@ export class IssueMainService implements IIssueMainService {
 			throw new Error('Window not found');
 		}
 		const replyChannel = `vscode:triggerIssueDataProviderResponse${window.id}`;
-		return Promises.withAsyncBody<string>(async (resolve, reject) => {
+		return Promises.withAsyncBody<string>(async (resolve) => {
 
 			const cts = new CancellationTokenSource();
 			window.sendWhenReady('vscode:triggerIssueDataProvider', cts.token, { replyChannel, extensionId });
+
+			validatedIpcMain.once(replyChannel, (_: unknown, data: string) => {
+				resolve(data);
+			});
+
+			try {
+				await timeout(5000);
+				cts.cancel();
+				resolve('Error: Extension timed out waiting for issue reporter data');
+			} finally {
+				validatedIpcMain.removeHandler(replyChannel);
+			}
+		});
+	}
+
+	async $getIssueReporterTemplate(extensionId: string): Promise<string> {
+		if (!this.issueReporterParentWindow) {
+			throw new Error('Issue reporter window not available');
+		}
+		const window = this.windowsMainService.getWindowById(this.issueReporterParentWindow.id);
+		if (!window) {
+			throw new Error('Window not found');
+		}
+		const replyChannel = `vscode:triggerIssueDataTemplateResponse${window.id}`;
+		return Promises.withAsyncBody<string>(async (resolve) => {
+
+			const cts = new CancellationTokenSource();
+			window.sendWhenReady('vscode:triggerIssueDataTemplate', cts.token, { replyChannel, extensionId });
 
 			validatedIpcMain.once(replyChannel, (_: unknown, data: string) => {
 				resolve(data);

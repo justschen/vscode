@@ -44,7 +44,7 @@ label {
 	margin-bottom: .5em;
 }
 
-span.extension-icon {
+span.codicon-modifier-spin {
 	font-size: 200% !important;
 	color: red;
 	position: fixed;

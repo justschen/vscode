@@ -10,6 +10,7 @@ export interface IssueReporterData {
 	issueType: IssueType;
 	issueDescription?: string;
 	extensionData?: string;
+	extensionTemplate?: string;
 
 	versionInfo?: any;
 	systemInfo?: SystemInfo;

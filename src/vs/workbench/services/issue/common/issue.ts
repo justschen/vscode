@@ -15,6 +15,7 @@ export interface IIssueUriRequestHandler {
 
 export interface IIssueDataProvider {
 	provideIssueExtensionData(token: CancellationToken): Promise<string>;
+	provideIssueExtensionTemplate(token: CancellationToken): Promise<string>;
 }
 
 export const IWorkbenchIssueService = createDecorator<IWorkbenchIssueService>('workbenchIssueService');
