@@ -42,7 +42,7 @@ export interface IChatResponse {
 	session: IChat;
 	errorDetails?: IChatResponseErrorDetails;
 	timings?: {
-		firstProgress: number;
+		firstProgress?: number;
 		totalElapsed: number;
 	};
 }
@@ -265,8 +265,9 @@ export interface IChatService {
 	transferredSessionData: IChatTransferredSessionData | undefined;
 
 	onDidSubmitSlashCommand: Event<{ slashCommand: string; sessionId: string }>;
+	onDidRegisterProvider: Event<{ providerId: string }>;
 	registerProvider(provider: IChatProvider): IDisposable;
-	hasProviders(): boolean;
+	hasSessions(providerId: string): boolean;
 	getProviderInfos(): IChatProviderInfo[];
 	startSession(providerId: string, token: CancellationToken): ChatModel | undefined;
 	getSession(sessionId: string): IChatModel | undefined;
@@ -289,7 +290,7 @@ export interface IChatService {
 
 	onDidPerformUserAction: Event<IChatUserActionEvent>;
 	notifyUserAction(event: IChatUserActionEvent): void;
-	onDidDisposeSession: Event<{ sessionId: string }>;
+	onDidDisposeSession: Event<{ sessionId: string; providerId: string; reason: 'initializationFailed' | 'cleared' }>;
 
 	transferChatSession(transferredSessionData: IChatTransferredSessionData, toWorkspace: URI): void;
 }

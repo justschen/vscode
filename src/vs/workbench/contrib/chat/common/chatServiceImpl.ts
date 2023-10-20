@@ -45,8 +45,8 @@ const SESSION_TRANSFER_EXPIRATION_IN_MILLISECONDS = 1000 * 60;
 
 type ChatProviderInvokedEvent = {
 	providerId: string;
-	timeToFirstProgress: number;
-	totalTime: number;
+	timeToFirstProgress: number | undefined;
+	totalTime: number | undefined;
 	result: 'success' | 'error' | 'errorWithOutput' | 'cancelled' | 'filtered';
 	requestType: 'string' | 'followup' | 'slashCommand';
 	slashCommand: string | undefined;
@@ -146,8 +146,11 @@ export class ChatService extends Disposable implements IChatService {
 	private readonly _onDidSubmitSlashCommand = this._register(new Emitter<{ slashCommand: string; sessionId: string }>());
 	public readonly onDidSubmitSlashCommand = this._onDidSubmitSlashCommand.event;
 
-	private readonly _onDidDisposeSession = this._register(new Emitter<{ sessionId: string }>());
+	private readonly _onDidDisposeSession = this._register(new Emitter<{ sessionId: string; providerId: string; reason: 'initializationFailed' | 'cleared' }>());
 	public readonly onDidDisposeSession = this._onDidDisposeSession.event;
+
+	private readonly _onDidRegisterProvider = this._register(new Emitter<{ providerId: string }>());
+	public readonly onDidRegisterProvider = this._onDidRegisterProvider.event;
 
 	constructor(
 		@IStorageService private readonly storageService: IStorageService,
@@ -376,7 +379,7 @@ export class ChatService extends Disposable implements IChatService {
 			model.setInitializationError(err);
 			model.dispose();
 			this._sessionModels.delete(model.sessionId);
-			this._onDidDisposeSession.fire({ sessionId: model.sessionId });
+			this._onDidDisposeSession.fire({ sessionId: model.sessionId, providerId: model.providerId, reason: 'initializationFailed' });
 		}
 	}
 
@@ -482,7 +485,7 @@ export class ChatService extends Disposable implements IChatService {
 				this.trace('sendRequest', `Request for session ${model.sessionId} was cancelled`);
 				this.telemetryService.publicLog2<ChatProviderInvokedEvent, ChatProviderInvokedClassification>('interactiveSessionProviderInvoked', {
 					providerId: provider.id,
-					timeToFirstProgress: -1,
+					timeToFirstProgress: undefined,
 					// Normally timings happen inside the EH around the actual provider. For cancellation we can measure how long the user waited before cancelling
 					totalTime: stopWatch.elapsed(),
 					result: 'cancelled',
@@ -586,8 +589,8 @@ export class ChatService extends Disposable implements IChatService {
 								'success';
 					this.telemetryService.publicLog2<ChatProviderInvokedEvent, ChatProviderInvokedClassification>('interactiveSessionProviderInvoked', {
 						providerId: provider.id,
-						timeToFirstProgress: rawResponse.timings?.firstProgress ?? 0,
-						totalTime: rawResponse.timings?.totalElapsed ?? 0,
+						timeToFirstProgress: rawResponse.timings?.firstProgress,
+						totalTime: rawResponse.timings?.totalElapsed,
 						result,
 						requestType,
 						slashCommand: usedSlashCommand?.command
@@ -730,7 +733,7 @@ export class ChatService extends Disposable implements IChatService {
 		model.dispose();
 		this._sessionModels.delete(sessionId);
 		this._pendingRequests.get(sessionId)?.cancel();
-		this._onDidDisposeSession.fire({ sessionId });
+		this._onDidDisposeSession.fire({ sessionId, providerId: model.providerId, reason: 'cleared' });
 	}
 
 	registerProvider(provider: IChatProvider): IDisposable {
@@ -742,6 +745,7 @@ export class ChatService extends Disposable implements IChatService {
 
 		this._providers.set(provider.id, provider);
 		this._hasProvider.set(true);
+		this._onDidRegisterProvider.fire({ providerId: provider.id });
 
 		Array.from(this._sessionModels.values())
 			.filter(model => model.providerId === provider.id)
@@ -759,8 +763,8 @@ export class ChatService extends Disposable implements IChatService {
 		});
 	}
 
-	hasProviders(): boolean {
-		return this._providers.size > 0;
+	public hasSessions(providerId: string): boolean {
+		return !!Object.values(this._persistedSessions).find((session) => session.providerId === providerId);
 	}
 
 	getProviderInfos(): IChatProviderInfo[] {
