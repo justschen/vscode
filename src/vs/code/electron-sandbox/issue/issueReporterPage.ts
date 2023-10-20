@@ -98,7 +98,6 @@ export default (): string => `
 		<div id="description-empty-error" class="validation-error hidden" role="alert">${escape(localize('descriptionEmptyValidation', "A description is required."))}</div>
 	</div>
 
-
 	<div class="system-info" id="block-container">
 		<div class="block block-system">
 			<input class="sendData" aria-label="${sendSystemInfoLabel}" type="checkbox" id="includeSystemInfo" checked/>

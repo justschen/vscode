@@ -88,7 +88,6 @@ export class ExtHostIssueReporter implements ExtHostIssueReporterShape {
 		this._IssueDataProviders.set(extensionId, provider);
 		this._proxy.$registerIssueDataProvider(extensionId);
 		return new Disposable(() => {
-			// TODO
 			this._proxy.$unregisterIssueDataProvider(extensionId);
 			this._IssueDataProviders.delete(extensionId);
 		});

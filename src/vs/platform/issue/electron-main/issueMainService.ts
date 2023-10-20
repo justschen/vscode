@@ -376,7 +376,6 @@ export class IssueMainService implements IIssueMainService {
 		return window;
 	}
 
-
 	async $getIssueReporterUri(extensionId: string): Promise<URI> {
 		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerIssueUriRequestHandlerResponse${window.id}`;
@@ -436,7 +435,7 @@ export class IssueMainService implements IIssueMainService {
 			try {
 				await timeout(5000);
 				cts.cancel();
-				resolve('Error: Extension timed out waiting for issue reporter data');
+				resolve('Error: Extension timed out waiting for issue reporter template');
 			} finally {
 				validatedIpcMain.removeHandler(replyChannel);
 			}

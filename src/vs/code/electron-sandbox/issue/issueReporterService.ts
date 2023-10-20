@@ -1124,12 +1124,16 @@ export class IssueReporter extends Disposable {
 						const descriptionTextArea = this.getElementById('description')!;
 						const fullTextArea = (descriptionTextArea as HTMLTextAreaElement).value += template;
 						this.issueReporterModel.update({ issueDescription: fullTextArea });
+
+						// Start loading for extension data.
 						this.setLoading();
 						const data = await this.getIssueDataFromExtension(matches[0]);
+
 						if (typeof data === 'string') {
 							matches[0].extensionData = data;
+							this.issueReporterModel.update({ extensionData: data });
 						}
-						this.issueReporterModel.update({ extensionData: data });
+
 						this.removeLoading();
 					} else {
 						this.validateSelectedExtension();
@@ -1174,7 +1178,6 @@ export class IssueReporter extends Disposable {
 
 	private setLoading() {
 		this.progress.infinite().show();
-
 		this.previewButton.label = 'Loading Extension Data...';
 		this.previewButton.enabled = false;
 	}

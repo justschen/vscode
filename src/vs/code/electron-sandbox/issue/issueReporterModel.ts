@@ -163,7 +163,7 @@ ${this.getInfos()}
 	}
 
 	private getExtensionData(): string {
-		return this._data.extensionData ? this._data.extensionData?.toString() : '';
+		return this._data.extensionData ? this._data.extensionData.toString() : '';
 	}
 
 	private generateSystemInfoMd(): string {
