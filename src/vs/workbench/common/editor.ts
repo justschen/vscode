@@ -1073,6 +1073,7 @@ export const enum GroupModelChangeKind {
 	/* Group Changes */
 	GROUP_ACTIVE,
 	GROUP_INDEX,
+	GROUP_LABEL,
 	GROUP_LOCKED,
 
 	/* Editor Changes */
@@ -1112,7 +1113,9 @@ interface IEditorPartConfiguration {
 	wrapTabs?: boolean;
 	scrollToSwitchTabs?: boolean;
 	highlightModifiedTabs?: boolean;
-	tabCloseButton?: 'left' | 'right' | 'off';
+	tabActionLocation?: 'left' | 'right';
+	tabActionCloseVisibility?: boolean;
+	tabActionUnpinVisibility?: boolean;
 	tabSizing?: 'fit' | 'shrink' | 'fixed';
 	tabSizingFixedMinWidth?: number;
 	tabSizingFixedMaxWidth?: number;
