@@ -533,6 +533,10 @@ class WordHighlighter {
 		const lineNumber = editorSelection.startLineNumber;
 		const startColumn = editorSelection.startColumn;
 
+		if (this.model.isDisposed()) {
+			return null;
+		}
+
 		return this.model.getWordAtPosition({
 			lineNumber: lineNumber,
 			column: startColumn
@@ -750,6 +754,7 @@ class WordHighlighter {
 				WordHighlighter.storedDecorations = WordHighlighter.storedDecorations.set(uri, newDecorationIDs);
 
 				if (newDecorations.length > 0) {
+					editorHighlighterContrib.wordHighlighter?.decorations.set(newDecorations);
 					editorHighlighterContrib.wordHighlighter?._hasWordHighlights.set(true);
 				}
 			}

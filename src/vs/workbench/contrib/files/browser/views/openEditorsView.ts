@@ -131,6 +131,7 @@ export class OpenEditorsView extends ViewPane {
 						this.focusActiveEditor();
 						break;
 					case GroupModelChangeKind.GROUP_INDEX:
+					case GroupModelChangeKind.GROUP_LABEL:
 						if (index >= 0) {
 							this.list.splice(index, 1, [group]);
 						}
@@ -717,7 +718,7 @@ class OpenEditorsDragAndDrop implements IListDragAndDrop<OpenEditor | IEditorGro
 			});
 			this.editorGroupService.activateGroup(group);
 		} else {
-			this.dropHandler.handleDrop(originalEvent, () => group, () => group.focus(), { index });
+			this.dropHandler.handleDrop(originalEvent, window, () => group, () => group.focus(), { index });
 		}
 	}
 
