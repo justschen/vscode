@@ -63,7 +63,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			const extensionId = arg.extensionId;
 			const extension = await this.extensionService.getExtension(extensionId);
 			if (extension) {
-				// const extensionDescription = this._registry.getExtensionDescription(extension.identifier);
 				const activationEvents = this._activationEventReader.readActivationEvents(extension);
 				for (const activationEvent of activationEvents) {
 					if (activationEvent === 'onIssueReporterOpened') {

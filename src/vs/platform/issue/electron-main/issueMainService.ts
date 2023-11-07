@@ -448,7 +448,7 @@ export class IssueMainService implements IIssueMainService {
 		return Promises.withAsyncBody<boolean[]>(async (resolve) => {
 			const cts = new CancellationTokenSource();
 			const result = [false, false];
-			window.sendWhenReady('vscode:sendReporterStatus', cts.token, { replyChannel, extensionId, extensionName });
+			window.sendWhenReady(replyChannel, cts.token, { replyChannel, extensionId, extensionName });
 			validatedIpcMain.on('vscode:receiveReporterStatus', (_: unknown, data: boolean[]) => {
 				resolve(data);
 			});

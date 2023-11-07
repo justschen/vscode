@@ -1139,8 +1139,6 @@ export class IssueReporter extends Disposable {
 				const selectedExtensionId = (<HTMLInputElement>e.target).value;
 				const extensions = this.issueReporterModel.getData().allExtensions;
 				const matches = extensions.filter(extension => extension.id === selectedExtensionId);
-				const foundHandler = matches[0].hasIssueUriRequestHandler;
-				const foundProvider = matches[0].hasIssueDataProviders;
 				if (matches.length) {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 
@@ -1183,8 +1181,6 @@ export class IssueReporter extends Disposable {
 					this.clearSearchResults();
 					this.validateSelectedExtension();
 				}
-				matches[0].hasIssueDataProviders = foundProvider;
-				matches[0].hasIssueUriRequestHandler = foundHandler;
 				this.updatePreviewButtonState();
 				this.renderBlocks();
 			});
@@ -1230,6 +1226,8 @@ export class IssueReporter extends Disposable {
 		const showLoading = this.getElementById('ext-loading')!;
 		show(showLoading);
 		showLoading.append(element);
+
+		this.renderBlocks();
 	}
 
 	private removeLoading(element: HTMLElement) {
