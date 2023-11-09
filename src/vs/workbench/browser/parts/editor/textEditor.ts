@@ -29,6 +29,7 @@ import { IEditorOptions, ITextEditorOptions, TextEditorSelectionRevealType, Text
 import { ICursorPositionChangedEvent } from 'vs/editor/common/cursorEvents';
 import { IFileService } from 'vs/platform/files/common/files';
 import { IMarkdownString } from 'vs/base/common/htmlContent';
+import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 
 export interface IEditorConfiguration {
 	editor: object;
@@ -66,7 +67,8 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		@IThemeService themeService: IThemeService,
 		@IEditorService editorService: IEditorService,
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
-		@IFileService protected readonly fileService: IFileService
+		@IFileService protected readonly fileService: IFileService,
+		@IConfigurationService protected readonly _configurationService: IConfigurationService,
 	) {
 		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService);
 
@@ -155,13 +157,13 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		};
 	}
 
-	protected getConfigurationOverrides(): ICodeEditorOptions {
+	protected getConfigurationOverrides(toggleProblem?: boolean): ICodeEditorOptions {
 		return {
 			overviewRulerLanes: 3,
 			lineNumbersMinChars: 3,
 			fixedOverflowWidgets: true,
 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
-			renderValidationDecorations: 'on' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
+			renderValidationDecorations: this._configurationService.getValue('workbench.editor.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
 		};
 	}
 
@@ -182,6 +184,8 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 			this._register(mainControl.onDidChangeModel(() => this.updateEditorConfiguration()));
 			this._register(mainControl.onDidChangeCursorPosition(e => this._onDidChangeSelection.fire({ reason: this.toEditorPaneSelectionChangeReason(e) })));
 			this._register(mainControl.onDidChangeModelContent(() => this._onDidChangeSelection.fire({ reason: EditorPaneSelectionChangeReason.EDIT })));
+			// this._register(mainControl.onDidChangeConfiguration(() => this.updateEditorConfiguration()));
+			this._register(mainControl.onDidChangeConfiguration(() => this.updateEditorControlOptions(this.getConfigurationOverrides())));
 		}
 	}
 
