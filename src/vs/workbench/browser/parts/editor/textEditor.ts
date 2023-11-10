@@ -70,7 +70,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		@IFileService protected readonly fileService: IFileService,
 		@IConfigurationService protected readonly _configurationService: IConfigurationService,
 	) {
-		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService);
+		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService,);
 
 		// Listen to configuration changes
 		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => this.handleConfigurationChangeEvent(e)));
@@ -163,7 +163,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 			lineNumbersMinChars: 3,
 			fixedOverflowWidgets: true,
 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
-			renderValidationDecorations: this._configurationService.getValue('workbench.editor.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
+			renderValidationDecorations: this._configurationService.getValue('editor.workbench.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
 		};
 	}
 
@@ -184,8 +184,6 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 			this._register(mainControl.onDidChangeModel(() => this.updateEditorConfiguration()));
 			this._register(mainControl.onDidChangeCursorPosition(e => this._onDidChangeSelection.fire({ reason: this.toEditorPaneSelectionChangeReason(e) })));
 			this._register(mainControl.onDidChangeModelContent(() => this._onDidChangeSelection.fire({ reason: EditorPaneSelectionChangeReason.EDIT })));
-			// this._register(mainControl.onDidChangeConfiguration(() => this.updateEditorConfiguration()));
-			this._register(mainControl.onDidChangeConfiguration(() => this.updateEditorControlOptions(this.getConfigurationOverrides())));
 		}
 	}
 

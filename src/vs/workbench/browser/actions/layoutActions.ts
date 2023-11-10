@@ -1165,10 +1165,10 @@ registerAction2(class extends Action2 {
 	run(accessor: ServicesAccessor): Promise<void> {
 		const configurationService = accessor.get(IConfigurationService);
 
-		const oldettingValue = configurationService.getValue<string>('workbench.editor.showProblemMarkers');
+		const oldettingValue = configurationService.getValue<string>('editor.workbench.showProblemMarkers');
 		const newSettingValue = !oldettingValue;
 
-		return configurationService.updateValue('workbench.editor.showProblemMarkers', newSettingValue);
+		return configurationService.updateValue('editor.workbench.showProblemMarkers', newSettingValue);
 	}
 });
 
