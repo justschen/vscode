@@ -56,6 +56,7 @@ import { IEditorTitleControlDimensions } from 'vs/workbench/browser/parts/editor
 import { StickyEditorGroupModel, UnstickyEditorGroupModel } from 'vs/workbench/common/editor/filteredEditorGroupModel';
 import { IReadonlyEditorGroupModel } from 'vs/workbench/common/editor/editorGroupModel';
 import { ILifecycleService, LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 
 interface IEditorInputLabel {
 	readonly editor: EditorInput;
@@ -150,9 +151,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
 		@ITreeViewsDnDService private readonly treeViewsDragAndDropService: ITreeViewsDnDService,
 		@IEditorResolverService editorResolverService: IEditorResolverService,
-		@ILifecycleService private readonly lifecycleService: ILifecycleService
+		@ILifecycleService private readonly lifecycleService: ILifecycleService,
+		@IConfigurationService private readonly _configurationService: IConfigurationService
 	) {
-		super(parent, editorPartsView, groupsView, groupView, tabsModel, contextMenuService, instantiationService, contextKeyService, keybindingService, notificationService, quickInputService, themeService, editorResolverService);
+		super(parent, editorPartsView, groupsView, groupView, tabsModel, contextMenuService, instantiationService, contextKeyService, keybindingService, notificationService, quickInputService, themeService, editorResolverService, _configurationService);
 
 		// Resolve the correct path library for the OS we are on
 		// If we are connected to remote, this accounts for the
@@ -932,6 +934,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			showContextMenu(e);
 		}));
 
+		// On Toggle of Problems View
+		this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('editor.workbench.showProblemMarkers')) {
+				this.redraw();
+			}
+		});
+
+
 		// Keyboard accessibility
 		disposables.add(addDisposableListener(tab, EventType.KEY_UP, e => {
 			const event = new StandardKeyboardEvent(e);
@@ -1389,7 +1399,9 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// or their first character of the name otherwise
 		let name: string | undefined;
 		let forceLabel = false;
-		let fileDecorationBadges = Boolean(options.decorations?.badges);
+		const setting = this._configurationService.getValue('editor.workbench.showProblemMarkers');
+		let fileDecorationBadges = Boolean(setting && options.decorations?.badges);
+		const fileDecorationColors = Boolean(setting && options.decorations?.colors);
 		let description: string;
 		if (options.pinnedTabSizing === 'compact' && this.tabsModel.isSticky(tabIndex)) {
 			const isShowingIcons = options.showIcons && options.hasIcons;
@@ -1421,7 +1433,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				italic: !this.tabsModel.isPinned(editor),
 				forceLabel,
 				fileDecorations: {
-					colors: Boolean(options.decorations?.colors),
+					colors: fileDecorationColors,
 					badges: fileDecorationBadges
 				}
 			}

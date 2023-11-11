@@ -163,7 +163,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 			lineNumbersMinChars: 3,
 			fixedOverflowWidgets: true,
 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
-			renderValidationDecorations: this._configurationService.getValue('editor.workbench.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
+			renderValidationDecorations: this.textResourceConfigurationService.getValue(this.getActiveResource(), 'editor.workbench.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
 		};
 	}
 
