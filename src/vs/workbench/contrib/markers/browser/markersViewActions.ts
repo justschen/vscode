@@ -16,6 +16,7 @@ import { ThemeIcon } from 'vs/base/common/themables';
 import { ActionViewItem } from 'vs/base/browser/ui/actionbar/actionViewItems';
 import { MarkersContextKeys } from 'vs/workbench/contrib/markers/common/markers';
 import 'vs/css!./markersViewActions';
+import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 
 export interface IMarkersFiltersChangeEvent {
 	excludedFiles?: boolean;
@@ -39,15 +40,24 @@ export class MarkersFilters extends Disposable {
 	private readonly _onDidChange: Emitter<IMarkersFiltersChangeEvent> = this._register(new Emitter<IMarkersFiltersChangeEvent>());
 	readonly onDidChange: Event<IMarkersFiltersChangeEvent> = this._onDidChange.event;
 
-	constructor(options: IMarkersFiltersOptions, private readonly contextKeyService: IContextKeyService) {
+	constructor(
+		options: IMarkersFiltersOptions,
+		private readonly contextKeyService: IContextKeyService,
+		@IConfigurationService private readonly _configurationService: IConfigurationService,
+	) {
 		super();
-
 		this._showErrors.set(options.showErrors);
 		this._showWarnings.set(options.showWarnings);
 		this._showInfos.set(options.showInfos);
 		this._excludedFiles.set(options.excludedFiles);
 		this._activeFile.set(options.activeFile);
 		this.filterHistory = options.filterHistory;
+
+		this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('editor.workbench.showProblemMarkers')) {
+				this.reloadFilters(options);
+			}
+		});
 	}
 
 	filterHistory: string[];
@@ -107,6 +117,21 @@ export class MarkersFilters extends Disposable {
 		}
 	}
 
+	private reloadFilters(options: IMarkersFiltersOptions,): void {
+		if (!this._configurationService.getValue('editor.workbench.showProblemMarkers')) {
+			this._showErrors.set(false);
+			this._showWarnings.set(false);
+			this._showInfos.set(false);
+		} else {
+			this._showErrors.set(true);
+			this._showWarnings.set(true);
+			this._showInfos.set(true);
+		}
+
+		// this._showErrors.set(!this._showErrors.get());
+		// this._showWarnings.set(!this._showWarnings.get());
+		// this._showInfos.set(!this._showInfos.get());
+	}
 }
 
 export class QuickFixAction extends Action {
