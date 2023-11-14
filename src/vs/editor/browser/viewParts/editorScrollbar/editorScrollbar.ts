@@ -164,6 +164,11 @@ export class EditorScrollbar extends ViewPart {
 		if (e.hasChanged(EditorOption.layoutInfo)) {
 			this._setLayout();
 		}
+
+		if (e.hasChanged(EditorOption.renderValidationDecorations)) {
+			// this.onBrowserDesperateReveal(viewDomNode.domNode, true, true)
+			this._setLayout();
+		}
 		return true;
 	}
 	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {

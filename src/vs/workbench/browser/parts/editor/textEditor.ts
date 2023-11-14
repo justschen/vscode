@@ -162,6 +162,8 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 	}
 
 	protected getConfigurationOverrides(toggleProblem?: boolean): ICodeEditorOptions {
+		const value = this.textResourceConfigurationService.getValue(this.getActiveResource(), 'problem.decorations.enabled');
+
 		return {
 			overviewRulerLanes: 3,
 			lineNumbersMinChars: 3,
