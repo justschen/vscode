@@ -324,8 +324,15 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 				}
 			}));
 			this._outlineDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
-				if (e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)) {
-					if (this._configurationService.getValue(OutlineConfigKeys.problemsEnabled)) {
+				if (e.affectsConfiguration('problems.decorations.enabled')) {
+					console.log('log change again in document symbols outline');
+					const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+					if (temp === undefined) {
+						return;
+					}
+					console.log(temp.decorations.enabled.outlines);
+					if (temp.decorations.enabled.outlines) {
+						console.log('outline temp outline here was true');
 						this._applyMarkersToOutline(model);
 					} else {
 						model.updateMarker([]);
