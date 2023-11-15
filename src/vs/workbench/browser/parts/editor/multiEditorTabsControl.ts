@@ -153,7 +153,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		@ITreeViewsDnDService private readonly treeViewsDragAndDropService: ITreeViewsDnDService,
 		@IEditorResolverService editorResolverService: IEditorResolverService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
-		@IConfigurationService private readonly _configurationService: IConfigurationService
+		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IHostService hostService: IHostService
 	) {
 		super(parent, editorPartsView, groupsView, groupView, tabsModel, contextMenuService, instantiationService, contextKeyService, keybindingService, notificationService, quickInputService, themeService, editorResolverService, editorGroupService, hostService);
