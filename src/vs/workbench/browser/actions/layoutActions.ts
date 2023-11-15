@@ -1165,10 +1165,12 @@ registerAction2(class extends Action2 {
 	run(accessor: ServicesAccessor): Promise<void> {
 		const configurationService = accessor.get(IConfigurationService);
 
-		const oldettingValue = configurationService.getValue<string>('editor.workbench.showProblemMarkers');
-		const newSettingValue = !oldettingValue;
+		const oldettingValue = configurationService.getValue<{ decorations: { enabled: { editor: boolean } } }>('problems');
+		const oldettingValue1 = configurationService.getValue<{ decorations: { enabled: { explorer: boolean } } }>('problems');
+		const oldettingValue2 = configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+		const newSettingValue = !oldettingValue.decorations.enabled.editor;
 
-		return configurationService.updateValue('editor.workbench.showProblemMarkers', newSettingValue);
+		return configurationService.updateValue('problems.decorations.enabled', { 'editor': newSettingValue, 'explorer': oldettingValue1.decorations.enabled.explorer, 'outlines': oldettingValue2.decorations.enabled.outlines });
 	}
 });
 

@@ -34,7 +34,7 @@ const createCodeActionsAutoSave = (description: string): IJSONSchema => {
 };
 
 const codeActionsOnSaveDefaultProperties = Object.freeze<IJSONSchemaMap>({
-	'source.fixAll': createCodeActionsAutoSave(nls.localize('codeActionsOnSave.fixAll', "Controls whether auto fix action should be run on file save.")),
+	'source.fixAll': createCodeActionssAutoSave(nls.localize('codeActionsOnSave.fixAll', "Controls whether auto fix action should be run on file save.")),
 });
 
 const codeActionsOnSaveSchema: IConfigurationPropertySchema = {

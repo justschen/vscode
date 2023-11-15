@@ -202,7 +202,12 @@ export class NotebookCellOutlineProvider {
 					}
 				}
 			};
-			if (this._configurationService.getValue(OutlineConfigKeys.problemsEnabled)) {
+			const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+			if (temp === undefined) {
+				return;
+			}
+			// console.log(temp.decorations.enabled.outlines);
+			if (temp.decorations.enabled.outlines) {
 				console.log('logged change');
 				markerServiceListener.value = this._markerService.onMarkerChanged(e => {
 					if (notebookEditorWidget.isDisposed) {
@@ -223,7 +228,7 @@ export class NotebookCellOutlineProvider {
 		};
 		updateMarkerUpdater();
 		this._entriesDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)) {
+			if (e.affectsConfiguration('problems.decorations.enabled.outlines')) {
 				console.log('did it change');
 				updateMarkerUpdater();
 				this._onDidChange.fire({});

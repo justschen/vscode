@@ -78,6 +78,12 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 			this.updateEditorConfiguration();
 		}));
 
+		// this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => {
+		// 	if (e.affectsConfiguration(this.getActiveResource(), 'problems.decorations.enabled')) {
+		// 		this.updateEditorConfiguration();
+		// 	}
+		// }));
+
 		// ARIA: if a group is added or removed, update the editor's ARIA
 		// label so that it appears in the label for when there are > 1 groups
 
@@ -107,7 +113,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 	}
 
 	protected shouldHandleConfigurationChangeEvent(e: ITextResourceConfigurationChangeEvent, resource: URI | undefined): boolean {
-		return e.affectsConfiguration(resource, 'editor');
+		return e.affectsConfiguration(resource, 'editor') || e.affectsConfiguration(resource, 'problems.decorations.enabled');
 	}
 
 	private consumePendingConfigurationChangeEvent(): void {
@@ -162,14 +168,13 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 	}
 
 	protected getConfigurationOverrides(toggleProblem?: boolean): ICodeEditorOptions {
-		const value = this.textResourceConfigurationService.getValue(this.getActiveResource(), 'problem.decorations.enabled');
-
+		const temp = this._configurationService.getValue<{ decorations: { enabled: { editor: boolean } } }>('problems');
 		return {
 			overviewRulerLanes: 3,
 			lineNumbersMinChars: 3,
 			fixedOverflowWidgets: true,
 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
-			renderValidationDecorations: this.textResourceConfigurationService.getValue(this.getActiveResource(), 'editor.workbench.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
+			renderValidationDecorations: temp.decorations.enabled.editor ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
 		};
 	}
 

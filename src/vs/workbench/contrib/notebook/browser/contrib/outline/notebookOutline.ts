@@ -93,7 +93,11 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 		template.container.style.removeProperty('--outline-element-color');
 		template.decoration.innerText = '';
 		if (markerInfo) {
-			const useBadges = this._configurationService.getValue(OutlineConfigKeys.problemsBadges);
+			const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+			if (temp === undefined) {
+				return;
+			}
+			const useBadges = temp.decorations.enabled.outlines;
 			if (!useBadges) {
 				template.decoration.classList.remove('bubble');
 				template.decoration.innerText = '';
@@ -105,7 +109,11 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 				template.decoration.innerText = markerInfo.count > 9 ? '9+' : String(markerInfo.count);
 			}
 			const color = this._themeService.getColorTheme().getColor(markerInfo.topSev === MarkerSeverity.Error ? listErrorForeground : listWarningForeground);
-			const useColors = this._configurationService.getValue(OutlineConfigKeys.problemsColors);
+			const temp2 = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+			if (temp2 === undefined) {
+				return;
+			}
+			const useColors = temp2.decorations.enabled.outlines;
 			if (!useColors) {
 				template.container.style.removeProperty('--outline-element-color');
 				template.decoration.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');

@@ -69,16 +69,16 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 		// 	'type': 'boolean',
 		// 	'default': true
 		// },
-		[OutlineConfigKeys.problemsColors]: {
-			'description': localize('outline.problem.colors', "Use colors for errors and warnings on Outline elements."),
-			'type': 'boolean',
-			'default': true
-		},
-		[OutlineConfigKeys.problemsBadges]: {
-			'description': localize('outline.problems.badges', "Use badges for errors and warnings on Outline elements."),
-			'type': 'boolean',
-			'default': true
-		},
+		// [OutlineConfigKeys.problemsColors]: {
+		// 	'description': localize('outline.problem.colors', "Use colors for errors and warnings on Outline elements."),
+		// 	'type': 'boolean',
+		// 	'default': true
+		// },
+		// [OutlineConfigKeys.problemsBadges]: {
+		// 	'description': localize('outline.problems.badges', "Use badges for errors and warnings on Outline elements."),
+		// 	'type': 'boolean',
+		// 	'default': true
+		// },
 		'outline.showFiles': {
 			type: 'boolean',
 			scope: ConfigurationScope.LANGUAGE_OVERRIDABLE,

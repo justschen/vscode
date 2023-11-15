@@ -169,16 +169,24 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 		const cssColor = color ? color.toString() : 'inherit';
 
 		// color of the label
-		if (this._configurationService.getValue(OutlineConfigKeys.problemsColors)) {
+		const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+		if (temp === undefined) {
+			return;
+		}
+		if (temp.decorations.enabled.outlines) {
 			template.container.style.setProperty('--outline-element-color', cssColor);
 		} else {
 			template.container.style.removeProperty('--outline-element-color');
 		}
 
 		// badge with color/rollup
-		if (!this._configurationService.getValue(OutlineConfigKeys.problemsBadges)) {
+		const temp2 = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+		if (temp2 === undefined) {
+			return;
+		}
+		if (!temp2.decorations.enabled.outlines) {
+			console.log('hide badges now');
 			dom.hide(template.decoration);
-
 		} else if (count > 0) {
 			dom.show(template.decoration);
 			template.decoration.classList.remove('bubble');
