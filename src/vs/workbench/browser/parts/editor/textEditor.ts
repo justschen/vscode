@@ -29,6 +29,7 @@ import { IEditorOptions, ITextEditorOptions, TextEditorSelectionRevealType, Text
 import { ICursorPositionChangedEvent } from 'vs/editor/common/cursorEvents';
 import { IFileService } from 'vs/platform/files/common/files';
 import { IMarkdownString } from 'vs/base/common/htmlContent';
+import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 
 export interface IEditorConfiguration {
 	editor: object;
@@ -66,12 +67,16 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		@IThemeService themeService: IThemeService,
 		@IEditorService editorService: IEditorService,
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
-		@IFileService protected readonly fileService: IFileService
+		@IFileService protected readonly fileService: IFileService,
+		@IConfigurationService protected readonly _configurationService: IConfigurationService,
 	) {
-		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService);
+		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService,);
 
 		// Listen to configuration changes
-		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => this.handleConfigurationChangeEvent(e)));
+		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => {
+			this.handleConfigurationChangeEvent(e);
+			this.updateEditorConfiguration();
+		}));
 
 		// ARIA: if a group is added or removed, update the editor's ARIA
 		// label so that it appears in the label for when there are > 1 groups
@@ -116,7 +121,8 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 
 		// Specific editor options always overwrite user configuration
 		const editorConfiguration: ICodeEditorOptions = isObject(configuration.editor) ? deepClone(configuration.editor) : Object.create(null);
-		Object.assign(editorConfiguration, this.getConfigurationOverrides());
+		const temp = this.getConfigurationOverrides();
+		Object.assign(editorConfiguration, temp);
 
 		// ARIA label
 		editorConfiguration.ariaLabel = this.computeAriaLabel();
@@ -155,13 +161,15 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		};
 	}
 
-	protected getConfigurationOverrides(): ICodeEditorOptions {
+	protected getConfigurationOverrides(toggleProblem?: boolean): ICodeEditorOptions {
+		const value = this.textResourceConfigurationService.getValue(this.getActiveResource(), 'problem.decorations.enabled');
+
 		return {
 			overviewRulerLanes: 3,
 			lineNumbersMinChars: 3,
 			fixedOverflowWidgets: true,
 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
-			renderValidationDecorations: 'on' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
+			renderValidationDecorations: this.textResourceConfigurationService.getValue(this.getActiveResource(), 'editor.workbench.showProblemMarkers') ? 'on' : 'off' // render problems even in readonly editors (https://github.com/microsoft/vscode/issues/89057)
 		};
 	}
 

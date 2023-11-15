@@ -21,7 +21,7 @@ import { IPaneCompositePartService } from 'vs/workbench/services/panecomposite/b
 import { ToggleAuxiliaryBarAction } from 'vs/workbench/browser/parts/auxiliarybar/auxiliaryBarActions';
 import { TogglePanelAction } from 'vs/workbench/browser/parts/panel/panelActions';
 import { ICommandService } from 'vs/platform/commands/common/commands';
-import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsCenteredLayoutContext, EditorAreaVisibleContext, IsFullscreenContext, PanelPositionContext } from 'vs/workbench/common/contextkeys';
+import { AuxiliaryBarVisibleContext, PanelAlignmentContext, PanelVisibleContext, SideBarVisibleContext, FocusedViewContext, InEditorZenModeContext, IsCenteredLayoutContext, EditorAreaVisibleContext, IsFullscreenContext, PanelPositionContext, ActiveEditorProblemsContext } from 'vs/workbench/common/contextkeys';
 import { Codicon } from 'vs/base/common/codicons';
 import { ThemeIcon } from 'vs/base/common/themables';
 import { DisposableStore } from 'vs/base/common/lifecycle';
@@ -1136,6 +1136,42 @@ registerAction2(class extends Action2 {
 	}
 });
 
+// Toggle problem decoration visibility (squiggles)
+registerAction2(class extends Action2 {
+
+	constructor() {
+		super({
+			id: 'workbench.action.toggleProblemMarkers',
+			title: {
+				value: localize('toggleProblemMarkers', "Toggle Problem Markers"),
+				mnemonicTitle: localize({ key: 'miToggleZenMode', comment: ['&& denotes a mnemonic'] }, "Zen Mode"),
+				original: 'Toggle Problem Markers'
+			},
+			category: Categories.View,
+			f1: true,
+			keybinding: {
+				weight: KeybindingWeight.WorkbenchContrib,
+				primary: KeyChord(KeyMod.CtrlCmd | KeyCode.KeyK, KeyCode.KeyZ)
+			},
+			toggled: ActiveEditorProblemsContext,
+			menu: [{
+				id: MenuId.MenubarAppearanceMenu,
+				group: '1_toggle_view',
+				order: 2
+			}]
+		});
+	}
+
+	run(accessor: ServicesAccessor): Promise<void> {
+		const configurationService = accessor.get(IConfigurationService);
+
+		const oldettingValue = configurationService.getValue<string>('editor.workbench.showProblemMarkers');
+		const newSettingValue = !oldettingValue;
+
+		return configurationService.updateValue('editor.workbench.showProblemMarkers', newSettingValue);
+	}
+});
+
 // --- Resize View
 
 abstract class BaseResizeViewAction extends Action2 {
@@ -1324,6 +1360,7 @@ ToggleVisibilityActions.push(...[
 	CreateToggleLayoutItem(ToggleAuxiliaryBarAction.ID, AuxiliaryBarVisibleContext, localize('secondarySideBar', "Secondary Side Bar"), { whenA: ContextKeyExpr.equals('config.workbench.sideBar.location', 'left'), iconA: panelRightIcon, iconB: panelLeftIcon }),
 	CreateToggleLayoutItem(TogglePanelAction.ID, PanelVisibleContext, localize('panel', "Panel"), panelIcon),
 	CreateToggleLayoutItem(ToggleStatusbarVisibilityAction.ID, ContextKeyExpr.equals('config.workbench.statusBar.visible', true), localize('statusBar', "Status Bar"), statusBarIcon),
+	CreateToggleLayoutItem('workbench.action.toggleProblemMarkers', ContextKeyExpr.equals('config.workbench.toggleProblemMarkers', true), localize('problemMarkers', "problemMarkers")),
 ]);
 
 const MoveSideBarActions: CustomizeLayoutItem[] = [

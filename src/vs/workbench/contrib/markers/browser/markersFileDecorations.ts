@@ -81,16 +81,19 @@ class MarkersFileDecorations implements IWorkbenchContribution {
 	}
 
 	private _updateEnablement(): void {
-		const value = this._configurationService.getValue<{ decorations: { enabled: boolean } }>('problems');
-		if (value.decorations.enabled === this._enabled) {
+		const value = this._configurationService.getValue<{ decorations: { enabled: { explorer: boolean } } }>('problems');
+		if (value === undefined) {
 			return;
 		}
-		this._enabled = value.decorations.enabled;
+		if (value.decorations.enabled.explorer === this._enabled) {
+			return;
+		}
+		this._enabled = value.decorations.enabled.explorer;
 		if (this._enabled) {
 			const provider = new MarkersDecorationsProvider(this._markerService);
 			this._provider = this._decorationsService.registerDecorationsProvider(provider);
 		} else if (this._provider) {
-			this._enabled = value.decorations.enabled;
+			this._enabled = value.decorations.enabled.explorer;
 			this._provider.dispose();
 		}
 	}
@@ -103,8 +106,23 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 	'properties': {
 		'problems.decorations.enabled': {
 			'description': localize('markers.showOnFile', "Show Errors & Warnings on files and folder."),
-			'type': 'boolean',
-			'default': true
+			'type': 'object',
+			'default': { 'editor': true, 'explorer': true, 'outlines': true },
+			'additionalProperties': false,
+			'properties': {
+				'editor': {
+					'type': 'boolean',
+					description: localize('markers.showOnFile.editor', "Show Errors & Warnings in the editor."),
+				},
+				'explorer': {
+					'type': 'boolean',
+					description: localize('markers.showOnFile.explorer', "Show Errors & Warnings in the explorer."),
+				},
+				'outlines': {
+					'type': 'boolean',
+					description: localize('outline.problems.enabled', "Show Errors & Warnings in the outline view."),
+				}
+			}
 		}
 	}
 });

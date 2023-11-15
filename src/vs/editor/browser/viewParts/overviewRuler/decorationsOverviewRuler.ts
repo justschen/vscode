@@ -293,6 +293,10 @@ export class DecorationsOverviewRuler extends ViewPart {
 	}
 
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
+		if (e.hasChanged(EditorOption.renderValidationDecorations)) {
+			console.log('renderValidationDecorations changed');
+			this.render();
+		}
 		return this._updateSettings(false) ? this._markRenderingIsNeeded() : false;
 	}
 	public override onCursorStateChanged(e: viewEvents.ViewCursorStateChangedEvent): boolean {
@@ -332,7 +336,7 @@ export class DecorationsOverviewRuler extends ViewPart {
 		// Nothing to read
 	}
 
-	public render(editorCtx: RestrictedRenderingContext): void {
+	public render(): void {
 		this._render();
 		this._actualShouldRender = ShouldRenderValue.NotNeeded;
 	}

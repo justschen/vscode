@@ -203,6 +203,7 @@ export class NotebookCellOutlineProvider {
 				}
 			};
 			if (this._configurationService.getValue(OutlineConfigKeys.problemsEnabled)) {
+				console.log('logged change');
 				markerServiceListener.value = this._markerService.onMarkerChanged(e => {
 					if (notebookEditorWidget.isDisposed) {
 						console.error('notebook editor is disposed');
@@ -223,6 +224,7 @@ export class NotebookCellOutlineProvider {
 		updateMarkerUpdater();
 		this._entriesDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)) {
+				console.log('did it change');
 				updateMarkerUpdater();
 				this._onDidChange.fire({});
 			}

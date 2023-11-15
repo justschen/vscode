@@ -216,6 +216,11 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'default': false,
 				'markdownDescription': localize('workbench.editor.pinnedTabsOnSeparateRow', "When enabled, displays pinned tabs in a separate row above all other tabs. This value is ignored when `#workbench.editor.showTabs#` is not set to `multiple`."),
 			},
+			'editor.workbench.showProblemMarkers': {
+				'type': 'boolean',
+				'default': true,
+				'markdownDescription': localize('editor.workbench.showProblemMarkers', "When enabled, show problem markers."),
+			},
 			'workbench.editor.preventPinnedEditorClose': {
 				'type': 'string',
 				'enum': ['keyboardAndMouse', 'keyboard', 'mouse', 'never'],

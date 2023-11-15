@@ -164,7 +164,7 @@ class OutputEditor extends AbstractTextResourceEditor {
 		@IFileService fileService: IFileService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
-		super(OUTPUT_VIEW_ID, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorGroupService, editorService, fileService);
+		super(OUTPUT_VIEW_ID, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorGroupService, editorService, fileService, configurationService);
 
 		this.resourceContext = this._register(instantiationService.createInstance(ResourceContextKey));
 	}
