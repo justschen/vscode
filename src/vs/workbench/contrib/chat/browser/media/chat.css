@@ -48,6 +48,11 @@
 	opacity: 0.7;
 }
 
+.interactive-item-container .chat-animated-ellipsis {
+	display: inline-block;
+	width: 11px;
+}
+
 .interactive-item-container:not(.show-progress) .chat-animated-ellipsis {
 	display: none;
 }
@@ -70,7 +75,7 @@
 	}
 }
 
-.chat-animated-ellipsis::after {
+.interactive-item-container .chat-animated-ellipsis::after {
 	content: '';
 	white-space: nowrap;
 	overflow: hidden;
@@ -270,8 +275,8 @@
 }
 
 .interactive-item-container.interactive-item-compact .header .avatar {
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 }
 
 .interactive-item-container.interactive-item-compact .header .avatar .icon {
@@ -279,7 +284,7 @@
 	height: 16px;
 }
 
-.interactive-item-container.interactive-item-compact .header .avatar+.avatar .codicon {
+.interactive-item-container.interactive-item-compact .header .codicon-avatar .codicon {
 	font-size: 12px;
 }
 
@@ -388,10 +393,6 @@
 
 .interactive-response .interactive-response-error-details .codicon-info {
 	color: var(--vscode-notificationsInfoIcon-foreground) !important; /* Have to override default styles which apply to all lists */
-}
-
-.interactive-item-container .value .interactive-slash-command {
-	color: var(--vscode-textLink-foreground);
 }
 
 .interactive-session .interactive-input-part {
@@ -546,6 +547,7 @@
 	border: 1px solid var(--vscode-chat-requestBorder);
 	border-radius: 4px;
 	margin-bottom: 8px;
+	padding: 4px;
 }
 
 .interactive-session .chat-used-context-list .monaco-list .monaco-list-row {
