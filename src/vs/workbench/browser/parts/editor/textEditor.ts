@@ -118,8 +118,8 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 
 		// Specific editor options always overwrite user configuration
 		const editorConfiguration: ICodeEditorOptions = isObject(configuration.editor) ? deepClone(configuration.editor) : Object.create(null);
-		const temp = this.getConfigurationOverrides();
-		Object.assign(editorConfiguration, temp);
+		const configurationOverride = this.getConfigurationOverrides();
+		Object.assign(editorConfiguration, configurationOverride);
 
 		// ARIA label
 		editorConfiguration.ariaLabel = this.computeAriaLabel();
