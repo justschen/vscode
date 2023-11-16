@@ -832,8 +832,7 @@ export class Minimap extends ViewPart implements IMinimapModel {
 
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
 		if (e.hasChanged(EditorOption.renderValidationDecorations)) {
-			console.log('on configuration changed and we check this');
-			this._actual.onDecorationsChanged();
+			return this._actual.onDecorationsChanged();
 		}
 		return this._onOptionsMaybeChanged();
 	}
