@@ -105,7 +105,7 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 	'type': 'object',
 	'properties': {
 		'problems.decorations.enabled': {
-			'description': localize('markers.showOnFile', "Show Errors & Warnings on files and folder."),
+			'description': localize('markers.showOnFile', "Show Errors & Warnings in VS Code"),
 			'type': 'object',
 			'default': { 'editor': true, 'explorer': true, 'outlines': true },
 			'additionalProperties': false,
@@ -116,11 +116,11 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 				},
 				'explorer': {
 					'type': 'boolean',
-					description: localize('markers.showOnFile.explorer', "Show Errors & Warnings in the explorer."),
+					description: localize('markers.showOnFile.explorer', "Show Errors & Warnings in files and folders."),
 				},
 				'outlines': {
 					'type': 'boolean',
-					description: localize('outline.problems.enabled', "Show Errors & Warnings in the outline view."),
+					description: localize('markers.showOnFile.outlines', "Show Errors & Warnings in the outline view."),
 				}
 			}
 		}
