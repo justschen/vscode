@@ -11,7 +11,7 @@ import { Position } from 'vs/editor/common/core/position';
 import { IEditorConfiguration } from 'vs/editor/common/config/editorConfiguration';
 import { TokenizationRegistry } from 'vs/editor/common/languages';
 import { editorCursorForeground, editorOverviewRulerBorder, editorOverviewRulerBackground } from 'vs/editor/common/core/editorColorRegistry';
-import { RenderingContext, RestrictedRenderingContext } from 'vs/editor/browser/view/renderingContext';
+import { RenderingContext } from 'vs/editor/browser/view/renderingContext';
 import { ViewContext } from 'vs/editor/common/viewModel/viewContext';
 import { EditorTheme } from 'vs/editor/common/editorTheme';
 import * as viewEvents from 'vs/editor/common/viewEvents';
@@ -294,7 +294,6 @@ export class DecorationsOverviewRuler extends ViewPart {
 
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
 		if (e.hasChanged(EditorOption.renderValidationDecorations)) {
-			console.log('renderValidationDecorations changed');
 			this.render();
 		}
 		return this._updateSettings(false) ? this._markRenderingIsNeeded() : false;

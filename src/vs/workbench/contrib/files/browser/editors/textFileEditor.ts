@@ -63,7 +63,7 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 		@IPreferencesService protected readonly preferencesService: IPreferencesService,
 		@IHostService private readonly hostService: IHostService
 	) {
-		super(TextFileEditor.ID, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService, fileService, configurationService);
+		super(TextFileEditor.ID, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService, fileService);
 
 		// Clear view state for deleted files
 		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e)));

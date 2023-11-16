@@ -35,7 +35,6 @@ import { IBoundarySashes } from 'vs/base/browser/ui/sash/sash';
 import { IPreferencesService } from 'vs/workbench/services/preferences/common/preferences';
 import { StopWatch } from 'vs/base/common/stopwatch';
 import { DiffEditorWidget } from 'vs/editor/browser/widget/diffEditor/diffEditorWidget';
-import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 
 /**
  * The text editor that leverages the diff text editor for the editing experience.
@@ -68,10 +67,8 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
 		@IFileService fileService: IFileService,
 		@IPreferencesService private readonly preferencesService: IPreferencesService,
-		@IConfigurationService configurationService2: IConfigurationService
-
 	) {
-		super(TextDiffEditor.ID, telemetryService, instantiationService, storageService, configurationService, themeService, editorService, editorGroupService, fileService, configurationService2);
+		super(TextDiffEditor.ID, telemetryService, instantiationService, storageService, configurationService, themeService, editorService, editorGroupService, fileService);
 	}
 
 	override getTitle(): string {

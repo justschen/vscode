@@ -114,7 +114,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		@IFileService fileService: IFileService,
 		@ILogService private readonly logService: ILogService
 	) {
-		super(SearchEditor.ID, telemetryService, instantiationService, storageService, textResourceService, themeService, editorService, editorGroupService, fileService, configurationService);
+		super(SearchEditor.ID, telemetryService, instantiationService, storageService, textResourceService, themeService, editorService, editorGroupService, fileService);
 		this.container = DOM.$('.search-editor');
 
 		this.searchOperation = this._register(new LongRunningOperation(progressService));

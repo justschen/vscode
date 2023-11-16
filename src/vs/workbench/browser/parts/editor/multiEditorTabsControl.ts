@@ -56,7 +56,6 @@ import { IEditorTitleControlDimensions } from 'vs/workbench/browser/parts/editor
 import { StickyEditorGroupModel, UnstickyEditorGroupModel } from 'vs/workbench/common/editor/filteredEditorGroupModel';
 import { IReadonlyEditorGroupModel } from 'vs/workbench/common/editor/editorGroupModel';
 import { ILifecycleService, LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
-import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IHostService } from 'vs/workbench/services/host/browser/host';
 
 interface IEditorInputLabel {
@@ -152,7 +151,6 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		@ITreeViewsDnDService private readonly treeViewsDragAndDropService: ITreeViewsDnDService,
 		@IEditorResolverService editorResolverService: IEditorResolverService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
-		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IHostService hostService: IHostService
 	) {
 		super(parent, editorPartsView, groupsView, groupView, tabsModel, contextMenuService, instantiationService, contextKeyService, keybindingService, notificationService, quickInputService, themeService, editorResolverService, hostService);
@@ -943,14 +941,6 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			showContextMenu(e);
 		}));
 
-		// On Toggle of Problems View
-		this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('editor.workbench.showProblemMarkers')) {
-				this.redraw();
-			}
-		});
-
-
 		// Keyboard accessibility
 		disposables.add(addDisposableListener(tab, EventType.KEY_UP, e => {
 			const event = new StandardKeyboardEvent(e);
@@ -1435,9 +1425,8 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// or their first character of the name otherwise
 		let name: string | undefined;
 		let forceLabel = false;
-		const setting = this._configurationService.getValue('editor.workbench.showProblemMarkers');
-		let fileDecorationBadges = Boolean(setting && options.decorations?.badges);
-		const fileDecorationColors = Boolean(setting && options.decorations?.colors);
+		let fileDecorationBadges = Boolean(options.decorations?.badges);
+		const fileDecorationColors = Boolean(options.decorations?.colors);
 		let description: string;
 		if (options.pinnedTabSizing === 'compact' && this.tabsModel.isSticky(tabIndex)) {
 			const isShowingIcons = options.showIcons && options.hasIcons;

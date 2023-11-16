@@ -81,19 +81,19 @@ class MarkersFileDecorations implements IWorkbenchContribution {
 	}
 
 	private _updateEnablement(): void {
-		const value = this._configurationService.getValue<{ decorations: { enabled: { explorer: boolean } } }>('problems');
-		if (value === undefined) {
+		const problem = this._configurationService.getValue<{ decorations: { enabled: { explorer: boolean } } }>('problems');
+		if (problem === undefined) {
 			return;
 		}
-		if (value.decorations.enabled.explorer === this._enabled) {
+		if (problem.decorations.enabled.explorer === this._enabled) {
 			return;
 		}
-		this._enabled = value.decorations.enabled.explorer;
+		this._enabled = problem.decorations.enabled.explorer;
 		if (this._enabled) {
 			const provider = new MarkersDecorationsProvider(this._markerService);
 			this._provider = this._decorationsService.registerDecorationsProvider(provider);
 		} else if (this._provider) {
-			this._enabled = value.decorations.enabled.explorer;
+			this._enabled = problem.decorations.enabled.explorer;
 			this._provider.dispose();
 		}
 	}

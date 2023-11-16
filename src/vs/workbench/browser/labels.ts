@@ -303,14 +303,8 @@ class ResourceLabelWidget extends IconLabel {
 		@ILabelService private readonly labelService: ILabelService,
 		@ITextFileService private readonly textFileService: ITextFileService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super(container, options);
-		this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('editor.workbench.showProblemMarkers')) {
-				this.render({ updateIcon: false, updateDecoration: true });
-			}
-		});
 	}
 
 	notifyVisibilityChanged(visible: boolean): void {
@@ -589,10 +583,9 @@ class ResourceLabelWidget extends IconLabel {
 			iconLabelOptions.extraClasses.push(...this.options.extraClasses);
 		}
 
-		// Check for configuration service
 		if (this.options?.fileDecorations && resource) {
 			if (options.updateDecoration) {
-				this.decoration.value = this.configurationService.getValue('editor.workbench.showProblemMarkers') ? this.decorationsService.getDecoration(resource, this.options.fileKind !== FileKind.FILE) : undefined;
+				this.decoration.value = this.decorationsService.getDecoration(resource, this.options.fileKind !== FileKind.FILE);
 			}
 
 			const decoration = this.decoration.value;

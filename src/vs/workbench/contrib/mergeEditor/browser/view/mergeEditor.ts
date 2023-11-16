@@ -114,14 +114,14 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		@IStorageService storageService: IStorageService,
 		@IThemeService themeService: IThemeService,
 		@ITextResourceConfigurationService textResourceConfigurationService: ITextResourceConfigurationService,
-		@IConfigurationService protected override readonly _configurationService: IConfigurationService,
+		@IConfigurationService private _configurationService: IConfigurationService,
 		@IEditorService editorService: IEditorService,
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
 		@IFileService fileService: IFileService,
 		@ICodeEditorService private readonly _codeEditorService: ICodeEditorService,
 		@IConfigurationService private readonly configurationService: IConfigurationService
 	) {
-		super(MergeEditor.ID, telemetryService, instantiation, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService, fileService, configurationService);
+		super(MergeEditor.ID, telemetryService, instantiation, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService, fileService);
 	}
 
 	override dispose(): void {

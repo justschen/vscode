@@ -325,12 +325,11 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 			}));
 			this._outlineDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
 				if (e.affectsConfiguration('problems.decorations.enabled')) {
-					// console.log('log change again in document symbols outline');
-					const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-					if (temp === undefined) {
+					const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+					if (problem === undefined) {
 						return;
 					}
-					if (temp.decorations.enabled.outlines) {
+					if (problem.decorations.enabled.outlines) {
 						this._applyMarkersToOutline(model);
 					} else {
 						model.updateMarker([]);
@@ -378,11 +377,10 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 	}
 
 	private _applyMarkersToOutline(model: OutlineModel | undefined): void {
-		const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-		if (temp === undefined) {
+		const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+		if (problem === undefined) {
 			return;
 		}
-		// console.log(temp.decorations.enabled.outlines);
 		if (!model) {
 			return;
 		}

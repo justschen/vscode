@@ -156,13 +156,6 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 		this._register(this.onDidChangeVisibility(visible => this.onDidChangeMarkersViewVisibility(visible)));
 		this._register(this.markersViewModel.onDidChangeViewMode(_ => this.onDidChangeViewMode()));
 
-		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('editor.workbench.showProblemMarkers')) {
-				this.refreshPanel();
-				this.updateFilter2();
-			}
-		}));
-
 		this.widgetAccessibilityProvider = instantiationService.createInstance(MarkersWidgetAccessibilityProvider);
 		this.widgetIdentityProvider = { getId(element: MarkerElement | MarkerTableItem) { return element.id; } };
 
@@ -178,7 +171,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 			showInfos: this.panelState['showInfos'] !== false,
 			excludedFiles: !!this.panelState['useFilesExclude'],
 			activeFile: !!this.panelState['activeFile'],
-		}, this.contextKeyService, configurationService));
+		}, this.contextKeyService));
 
 		// Update filter, whenever the "files.exclude" setting is changed
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
@@ -351,28 +344,6 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 	}
 
 	private updateFilter() {
-		this.filter.options = new FilterOptions(this.filterWidget.getFilterText(), this.getFilesExcludeExpressions(), this.filters.showWarnings, this.filters.showErrors, this.filters.showInfos, this.uriIdentityService);
-		this.widget.filterMarkers(this.getResourceMarkers(), this.filter.options);
-
-		this.cachedFilterStats = undefined;
-		const { total, filtered } = this.getFilterStats();
-		this.toggleVisibility(total === 0 || filtered === 0);
-		this.renderMessage();
-
-		this.updateBadge(total, filtered);
-		this.checkMoreFilters();
-	}
-
-	private updateFilter2() {
-		if (!this.configurationService.getValue('editor.workbench.showProblemMarkers')) {
-			this.filters.showWarnings = false;
-			this.filters.showErrors = false;
-			this.filters.showInfos = false;
-		} else {
-			this.filters.showWarnings = true;
-			this.filters.showErrors = true;
-			this.filters.showInfos = true;
-		}
 		this.filter.options = new FilterOptions(this.filterWidget.getFilterText(), this.getFilesExcludeExpressions(), this.filters.showWarnings, this.filters.showErrors, this.filters.showInfos, this.uriIdentityService);
 		this.widget.filterMarkers(this.getResourceMarkers(), this.filter.options);
 

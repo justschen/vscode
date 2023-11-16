@@ -13,7 +13,7 @@ import { IThemeService } from 'vs/platform/theme/common/themeService';
 import { IActiveNotebookEditor, INotebookEditor, INotebookViewCellsUpdateEvent } from 'vs/workbench/contrib/notebook/browser/notebookBrowser';
 import { CellKind } from 'vs/workbench/contrib/notebook/common/notebookCommon';
 import { INotebookExecutionStateService, NotebookExecutionType } from 'vs/workbench/contrib/notebook/common/notebookExecutionStateService';
-import { OutlineChangeEvent, OutlineConfigKeys, OutlineTarget } from 'vs/workbench/services/outline/browser/outline';
+import { OutlineChangeEvent, OutlineTarget } from 'vs/workbench/services/outline/browser/outline';
 import { OutlineEntry } from './OutlineEntry';
 import { IOutlineModelService } from 'vs/editor/contrib/documentSymbols/browser/outlineModel';
 import { CancellationToken } from 'vs/base/common/cancellation';
@@ -202,13 +202,11 @@ export class NotebookCellOutlineProvider {
 					}
 				}
 			};
-			const temp = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-			if (temp === undefined) {
+			const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
+			if (problem === undefined) {
 				return;
 			}
-			// console.log(temp.decorations.enabled.outlines);
-			if (temp.decorations.enabled.outlines) {
-				console.log('logged change');
+			if (problem.decorations.enabled.outlines) {
 				markerServiceListener.value = this._markerService.onMarkerChanged(e => {
 					if (notebookEditorWidget.isDisposed) {
 						console.error('notebook editor is disposed');
@@ -228,8 +226,7 @@ export class NotebookCellOutlineProvider {
 		};
 		updateMarkerUpdater();
 		this._entriesDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('problems.decorations.enabled.outlines')) {
-				console.log('did it change');
+			if (e.affectsConfiguration('problems.decorations.enabled')) {
 				updateMarkerUpdater();
 				this._onDidChange.fire({});
 			}
