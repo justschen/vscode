@@ -165,9 +165,6 @@ export class EditorScrollbar extends ViewPart {
 			this._setLayout();
 		}
 
-		// if (e.hasChanged(EditorOption.renderValidationDecorations)) {
-		// 	this._setLayout();
-		// }
 		return true;
 	}
 	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {

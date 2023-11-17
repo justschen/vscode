@@ -93,12 +93,10 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 		template.container.style.removeProperty('--outline-element-color');
 		template.decoration.innerText = '';
 		if (markerInfo) {
-			const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-			if (problem === undefined) {
-				return;
-			}
-			const useBadges = problem.decorations.enabled.outlines;
-			if (!useBadges) {
+			const problem = this._configurationService.getValue('workbench.editor.showProblems');
+			const useBadges = this._configurationService.getValue(OutlineConfigKeys.problemsBadges);
+
+			if (useBadges === 'off' || !problem) {
 				template.decoration.classList.remove('bubble');
 				template.decoration.innerText = '';
 			} else if (markerInfo.count === 0) {
@@ -112,8 +110,8 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 			if (problem === undefined) {
 				return;
 			}
-			const useColors = problem.decorations.enabled.outlines;
-			if (!useColors) {
+			const useColors = this._configurationService.getValue(OutlineConfigKeys.problemsColors);
+			if (!useColors || !problem) {
 				template.container.style.removeProperty('--outline-element-color');
 				template.decoration.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');
 			} else {

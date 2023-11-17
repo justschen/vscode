@@ -64,21 +64,36 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			],
 			'default': 'alwaysExpand'
 		},
-		// [OutlineConfigKeys.problemsEnabled]: {
-		// 	'description': localize('outline.showProblem', "Show errors and warnings on Outline elements."),
-		// 	'type': 'boolean',
-		// 	'default': true
-		// },
-		// [OutlineConfigKeys.problemsColors]: {
-		// 	'description': localize('outline.problem.colors', "Use colors for errors and warnings on Outline elements."),
-		// 	'type': 'boolean',
-		// 	'default': true
-		// },
-		// [OutlineConfigKeys.problemsBadges]: {
-		// 	'description': localize('outline.problems.badges', "Use badges for errors and warnings on Outline elements."),
-		// 	'type': 'boolean',
-		// 	'default': true
-		// },
+		[OutlineConfigKeys.problemsEnabled]: {
+			'description': localize('outline.showProblem', "Show errors and warnings on Outline elements."),
+			'type': 'string',
+			'enum': ['auto', 'true', 'false'],
+			'markdownEnumDescriptions': [
+				localize('outline.showProblem.auto', "Show Errors & Warnings in the Outline depending on the {0} setting.", '`editor.showProblems`'),
+				localize('outline.showProblem.true', "Show errors and warnings on Outline elements."),
+				localize('outline.showProblem.false', "Do not show errors and warnings on Outline elements.")],
+			'default': 'auto'
+		},
+		[OutlineConfigKeys.problemsColors]: {
+			'description': localize('outline.problem.colors', "Use colors for errors and warnings on Outline elements."),
+			'type': 'string',
+			'enum': ['auto', 'true', 'false'],
+			'markdownEnumDescriptions': [
+				localize('outline.problem.colors.auto', "Use colors for errors and warnings in the Outline depending on the {0} setting.", '`editor.showProblems`'),
+				localize('outline.problem.colors.true', "Use colors for errors and warnings on Outline elements."),
+				localize('outline.problem.colors.false', "Do not use colors for errors and warnings on Outline elements.")],
+			'default': 'auto'
+		},
+		[OutlineConfigKeys.problemsBadges]: {
+			'description': localize('outline.problems.badges', "Use badges for errors and warnings on Outline elements."),
+			'type': 'string',
+			'enum': ['auto', 'true', 'false'],
+			'markdownEnumDescriptions': [
+				localize('outline.problem.badges.auto', "Use badges for errors and warnings in the Outline depending on the {0} setting.", '`editor.problem]s`'),
+				localize('outline.problem.badges.true', "Use badges for errors and warnings on Outline elements."),
+				localize('outline.problem.badges.false', "Do not use badges for errors and warnings on Outline elements.")],
+			'default': 'auto'
+		},
 		'outline.showFiles': {
 			type: 'boolean',
 			scope: ConfigurationScope.LANGUAGE_OVERRIDABLE,

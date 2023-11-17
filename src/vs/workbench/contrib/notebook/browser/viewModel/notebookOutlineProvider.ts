@@ -13,7 +13,7 @@ import { IThemeService } from 'vs/platform/theme/common/themeService';
 import { IActiveNotebookEditor, INotebookEditor, INotebookViewCellsUpdateEvent } from 'vs/workbench/contrib/notebook/browser/notebookBrowser';
 import { CellKind } from 'vs/workbench/contrib/notebook/common/notebookCommon';
 import { INotebookExecutionStateService, NotebookExecutionType } from 'vs/workbench/contrib/notebook/common/notebookExecutionStateService';
-import { OutlineChangeEvent, OutlineTarget } from 'vs/workbench/services/outline/browser/outline';
+import { OutlineChangeEvent, OutlineConfigKeys, OutlineTarget } from 'vs/workbench/services/outline/browser/outline';
 import { OutlineEntry } from './OutlineEntry';
 import { IOutlineModelService } from 'vs/editor/contrib/documentSymbols/browser/outlineModel';
 import { CancellationToken } from 'vs/base/common/cancellation';
@@ -202,11 +202,11 @@ export class NotebookCellOutlineProvider {
 					}
 				}
 			};
-			const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-			if (problem === undefined) {
-				return;
-			}
-			if (problem.decorations.enabled.outlines) {
+			const problem = this._configurationService.getValue('workbench.editor.showProblems');
+			const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
+			const autoProblems = problem && config !== 'off';
+
+			if (autoProblems || config === 'on') {
 				markerServiceListener.value = this._markerService.onMarkerChanged(e => {
 					if (notebookEditorWidget.isDisposed) {
 						console.error('notebook editor is disposed');
@@ -226,7 +226,7 @@ export class NotebookCellOutlineProvider {
 		};
 		updateMarkerUpdater();
 		this._entriesDisposables.add(this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('problems.decorations.enabled')) {
+			if (e.affectsConfiguration('workbench.editor.showProblems') || e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)) {
 				updateMarkerUpdater();
 				this._onDidChange.fire({});
 			}

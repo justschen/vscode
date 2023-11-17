@@ -114,7 +114,7 @@ export class MergeEditor extends AbstractTextEditor<IMergeEditorViewState> {
 		@IStorageService storageService: IStorageService,
 		@IThemeService themeService: IThemeService,
 		@ITextResourceConfigurationService textResourceConfigurationService: ITextResourceConfigurationService,
-		@IConfigurationService private _configurationService: IConfigurationService,
+		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IEditorService editorService: IEditorService,
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
 		@IFileService fileService: IFileService,

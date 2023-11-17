@@ -169,11 +169,11 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 		const cssColor = color ? color.toString() : 'inherit';
 
 		// color of the label
-		const problem = this._configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
-		if (problem === undefined) {
-			return;
-		}
-		if (problem.decorations.enabled.outlines) {
+		const problem = this._configurationService.getValue('workbench.editor.showProblems');
+		const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
+		const autoProblems = problem && config !== 'off';
+
+		if (autoProblems || config === 'on') {
 			template.container.style.setProperty('--outline-element-color', cssColor);
 		} else {
 			template.container.style.removeProperty('--outline-element-color');
@@ -183,7 +183,7 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 		if (problem === undefined) {
 			return;
 		}
-		if (!problem.decorations.enabled.outlines) {
+		if (config === 'off' || !problem) {
 			console.log('hide badges now');
 			dom.hide(template.decoration);
 		} else if (count > 0) {

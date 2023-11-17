@@ -39,11 +39,9 @@ export class MarkersFilters extends Disposable {
 	private readonly _onDidChange: Emitter<IMarkersFiltersChangeEvent> = this._register(new Emitter<IMarkersFiltersChangeEvent>());
 	readonly onDidChange: Event<IMarkersFiltersChangeEvent> = this._onDidChange.event;
 
-	constructor(
-		options: IMarkersFiltersOptions,
-		private readonly contextKeyService: IContextKeyService,
-	) {
+	constructor(options: IMarkersFiltersOptions, private readonly contextKeyService: IContextKeyService) {
 		super();
+
 		this._showErrors.set(options.showErrors);
 		this._showWarnings.set(options.showWarnings);
 		this._showInfos.set(options.showInfos);
