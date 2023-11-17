@@ -293,9 +293,9 @@ export class DecorationsOverviewRuler extends ViewPart {
 	}
 
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
-		if (e.hasChanged(EditorOption.renderValidationDecorations)) {
-			this.render();
-		}
+		// if (e.hasChanged(EditorOption.renderValidationDecorations)) {
+		// 	this.render();
+		// }
 		return this._updateSettings(false) ? this._markRenderingIsNeeded() : false;
 	}
 	public override onCursorStateChanged(e: viewEvents.ViewCursorStateChangedEvent): boolean {
