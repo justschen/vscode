@@ -183,8 +183,10 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 		if (problem === undefined) {
 			return;
 		}
-		if (config === 'off' || !problem) {
-			console.log('hide badges now');
+
+		const config2 = this._configurationService.getValue(OutlineConfigKeys.problemsBadges);
+		const autoProblemBadges = problem && config2 !== 'off';
+		if (config2 === 'off' || (!autoProblemBadges && config2 !== 'on')) {
 			dom.hide(template.decoration);
 		} else if (count > 0) {
 			dom.show(template.decoration);
@@ -200,7 +202,19 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 			template.decoration.title = localize('deep.problem', "Contains elements with problems");
 			template.decoration.style.setProperty('--outline-element-color', cssColor);
 		}
+
+		// Outline color
+		// const useColors = this._configurationService.getValue(OutlineConfigKeys.problemsColors);
+		// const autoProblemColors = problem && useColors !== 'off';
+		// if (useColors === 'off' || (!autoProblemColors || useColors === 'on')) {
+		// 	template.container.style.removeProperty('--outline-element-color');
+		// 	template.decoration.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');
+		// } else {
+		// 	template.container.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');
+		// }
 	}
+
+
 
 
 

@@ -329,7 +329,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 					const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
 					const autoProblems = problem && config !== 'off';
 
-					if (autoProblems) {
+					if (autoProblems || config === 'on') {
 						this._applyMarkersToOutline(model);
 					} else {
 						model.updateMarker([]);
@@ -380,7 +380,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 		const problem = this._configurationService.getValue('workbench.editor.showProblems');
 		const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
 		const autoProblem = problem && config !== 'off';
-		if (!model || !autoProblem) {
+		if (!model || (!autoProblem && config === 'off')) {
 			return;
 		}
 		const markers: IOutlineMarker[] = [];
