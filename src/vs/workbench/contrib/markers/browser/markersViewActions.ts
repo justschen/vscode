@@ -106,6 +106,7 @@ export class MarkersFilters extends Disposable {
 			this._onDidChange.fire(<IMarkersFiltersChangeEvent>{ showInfos: true });
 		}
 	}
+
 }
 
 export class QuickFixAction extends Action {

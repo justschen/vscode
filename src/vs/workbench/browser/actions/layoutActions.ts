@@ -1166,8 +1166,6 @@ registerAction2(class extends Action2 {
 		const configurationService = accessor.get(IConfigurationService);
 
 		const oldettingValue = configurationService.getValue('workbench.editor.showProblems');
-		// const oldettingValue1 = configurationService.getValue<{ decorations: { enabled: { explorer: boolean } } }>('problems');
-		// const oldettingValue2 = configurationService.getValue<{ decorations: { enabled: { outlines: boolean } } }>('problems');
 		const newSettingValue = !oldettingValue;
 
 		return configurationService.updateValue('workbench.editor.showProblems', newSettingValue);

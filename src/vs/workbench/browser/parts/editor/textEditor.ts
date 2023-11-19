@@ -71,7 +71,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService,);
 
 		// Listen to configuration changes
-		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => { this.handleConfigurationChangeEvent(e); }));
+		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => this.handleConfigurationChangeEvent(e)));
 
 		// ARIA: if a group is added or removed, update the editor's ARIA
 		// label so that it appears in the label for when there are > 1 groups
@@ -116,8 +116,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 
 		// Specific editor options always overwrite user configuration
 		const editorConfiguration: ICodeEditorOptions = isObject(configuration.editor) ? deepClone(configuration.editor) : Object.create(null);
-		const configurationOverride = this.getConfigurationOverrides();
-		Object.assign(editorConfiguration, configurationOverride);
+		Object.assign(editorConfiguration, this.getConfigurationOverrides());
 
 		// ARIA label
 		editorConfiguration.ariaLabel = this.computeAriaLabel();

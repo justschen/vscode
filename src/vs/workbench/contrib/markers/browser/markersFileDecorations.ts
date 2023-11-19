@@ -125,34 +125,6 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 	}
 });
 
-// Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
-// 	'id': 'problems',
-// 	'order': 101,
-// 	'type': 'object',
-// 	'properties': {
-// 		'problems.decorations.enabled': {
-// 			'description': localize('markers.showOnFile', "Show Errors & Warnings in VS Code"),
-// 			'type': 'object',
-// 			'default': { 'editor': true, 'explorer': true, 'outlines': true },
-// 			'additionalProperties': false,
-// 			'properties': {
-// 				'editor': {
-// 					'type': 'boolean',
-// 					description: localize('markers.showOnFile.editor', "Show Errors & Warnings in the editor."),
-// 				},
-// 				'explorer': {
-// 					'type': 'boolean',
-// 					description: localize('markers.showOnFile.explorer', "Show Errors & Warnings in files and folders."),
-// 				},
-// 				'outlines': {
-// 					'type': 'boolean',
-// 					description: localize('markers.showOnFile.outlines', "Show Errors & Warnings in the outline view."),
-// 				}
-// 			}
-// 		}
-// 	}
-// });
-
 // register file decorations
 Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench)
 	.registerWorkbenchContribution(MarkersFileDecorations, LifecyclePhase.Restored);

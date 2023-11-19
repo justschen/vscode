@@ -66,7 +66,7 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 		@IThemeService themeService: IThemeService,
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
 		@IFileService fileService: IFileService,
-		@IPreferencesService private readonly preferencesService: IPreferencesService,
+		@IPreferencesService private readonly preferencesService: IPreferencesService
 	) {
 		super(TextDiffEditor.ID, telemetryService, instantiationService, storageService, configurationService, themeService, editorService, editorGroupService, fileService);
 	}

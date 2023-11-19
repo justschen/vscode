@@ -164,7 +164,6 @@ export class EditorScrollbar extends ViewPart {
 		if (e.hasChanged(EditorOption.layoutInfo)) {
 			this._setLayout();
 		}
-
 		return true;
 	}
 	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {

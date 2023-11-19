@@ -170,10 +170,10 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 
 		// color of the label
 		const problem = this._configurationService.getValue('workbench.editor.showProblems');
-		const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
-		const autoProblems = problem && config !== 'off';
+		const configProblems = this._configurationService.getValue(OutlineConfigKeys.problemsColors);
+		const autoProblems = problem && configProblems !== 'off';
 
-		if (autoProblems || config === 'on') {
+		if (autoProblems || configProblems === 'on') {
 			template.container.style.setProperty('--outline-element-color', cssColor);
 		} else {
 			template.container.style.removeProperty('--outline-element-color');
@@ -184,9 +184,9 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 			return;
 		}
 
-		const config2 = this._configurationService.getValue(OutlineConfigKeys.problemsBadges);
-		const autoProblemBadges = problem && config2 !== 'off';
-		if (config2 === 'off' || (!autoProblemBadges && config2 !== 'on')) {
+		const configBadges = this._configurationService.getValue(OutlineConfigKeys.problemsBadges);
+		const autoProblemBadges = problem && configBadges !== 'off';
+		if (configBadges === 'off' || (!autoProblemBadges && configBadges !== 'on')) {
 			dom.hide(template.decoration);
 		} else if (count > 0) {
 			dom.show(template.decoration);
@@ -202,21 +202,7 @@ export class DocumentSymbolRenderer implements ITreeRenderer<OutlineElement, Fuz
 			template.decoration.title = localize('deep.problem', "Contains elements with problems");
 			template.decoration.style.setProperty('--outline-element-color', cssColor);
 		}
-
-		// Outline color
-		// const useColors = this._configurationService.getValue(OutlineConfigKeys.problemsColors);
-		// const autoProblemColors = problem && useColors !== 'off';
-		// if (useColors === 'off' || (!autoProblemColors || useColors === 'on')) {
-		// 	template.container.style.removeProperty('--outline-element-color');
-		// 	template.decoration.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');
-		// } else {
-		// 	template.container.style.setProperty('--outline-element-color', color?.toString() ?? 'inherit');
-		// }
 	}
-
-
-
-
 
 	disposeTemplate(_template: DocumentSymbolTemplate): void {
 		_template.iconLabel.dispose();
