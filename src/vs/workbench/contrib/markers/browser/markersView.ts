@@ -317,7 +317,6 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 						this.resetWidget();
 					} else {
 						// Update resource
-						console.log('getting here on view view change:' + markerOrChange);
 						this.widget.update([...markerOrChange.updated]);
 					}
 				}
