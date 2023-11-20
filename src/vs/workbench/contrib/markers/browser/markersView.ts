@@ -175,7 +175,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 
 		// Update filter, whenever the "files.exclude" setting is changed
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if ((this.filters.excludedFiles && e.affectsConfiguration('files.exclude'))) {
+			if (this.filters.excludedFiles && e.affectsConfiguration('files.exclude')) {
 				this.updateFilter();
 			}
 			if (e.affectsConfiguration('workbench.editor.showProblems')) {
@@ -317,6 +317,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 						this.resetWidget();
 					} else {
 						// Update resource
+						console.log('getting here on view view change:' + markerOrChange);
 						this.widget.update([...markerOrChange.updated]);
 					}
 				}
