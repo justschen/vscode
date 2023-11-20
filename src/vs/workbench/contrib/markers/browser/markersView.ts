@@ -758,27 +758,24 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 	}
 
 	private rendeProblemsOffMessage(container: HTMLElement) {
-		const span1 = dom.append(container, dom.$('span'));
-		span1.textContent = Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF;
-		// const link = dom.append(container, dom.$('a.messageAction'));
+		const span = dom.append(container, dom.$('span'));
+		span.textContent = Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF;
+		// const link = document.createElement('a');
 		// link.textContent = localize('goToSetting', "Go to Setting");
+		// link.href = `command:workbench.action.openSettings?%5B%22%40tag%3Aworkbench.editor.showProblems%22%5D`;
 		// link.setAttribute('tabIndex', '0');
-		// const span2 = dom.append(container, dom.$('span'));
-		// span2.textContent = '.';
-		// dom.addStandardDisposableListener(link, dom.EventType.CLICK, () => this.clearFilters());
-		// dom.addStandardDisposableListener(link, dom.EventType.KEY_DOWN, (e: IKeyboardEvent) => {
-		// 	if (e.equals(KeyCode.Enter) || e.equals(KeyCode.Space)) {
-		// 		this.clearFilters();
-		// 		e.stopPropagation();
-		// 	}
-		// });
-		span1.textContent = Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF;
+		// container.appendChild(link);
 		this.setAriaLabel(Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF);
 	}
 
-	// private getSettingLink() {
-	// 	this.preferencesService.openGlobalSettings(undefined, 'workbench.editor.showProblems');
-	// }
+	private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string, separator?: string): string {
+		const encodedArgs = encodeURIComponent(JSON.stringify(args));
+		let prefix = '';
+		if (separator) {
+			prefix = ` ${separator} `;
+		}
+		return `${prefix}[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
+	}
 
 	private setAriaLabel(label: string): void {
 		this.widget.setAriaLabel(label);
