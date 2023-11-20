@@ -768,14 +768,14 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 		this.setAriaLabel(Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF);
 	}
 
-	private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string, separator?: string): string {
-		const encodedArgs = encodeURIComponent(JSON.stringify(args));
-		let prefix = '';
-		if (separator) {
-			prefix = ` ${separator} `;
-		}
-		return `${prefix}[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
-	}
+	// private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string, separator?: string): string {
+	// 	const encodedArgs = encodeURIComponent(JSON.stringify(args));
+	// 	let prefix = '';
+	// 	if (separator) {
+	// 		prefix = ` ${separator} `;
+	// 	}
+	// 	return `${prefix}[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
+	// }
 
 	private setAriaLabel(label: string): void {
 		this.widget.setAriaLabel(label);
