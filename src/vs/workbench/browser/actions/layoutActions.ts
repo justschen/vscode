@@ -1144,15 +1144,10 @@ registerAction2(class extends Action2 {
 			id: 'workbench.action.toggleProblemMarkers',
 			title: {
 				value: localize('toggleProblemMarkers', "Toggle Problem Markers"),
-				mnemonicTitle: localize({ key: 'miToggleZenMode', comment: ['&& denotes a mnemonic'] }, "Zen Mode"),
 				original: 'Toggle Problem Markers'
 			},
 			category: Categories.View,
 			f1: true,
-			keybinding: {
-				weight: KeybindingWeight.WorkbenchContrib,
-				primary: KeyChord(KeyMod.CtrlCmd | KeyCode.KeyK, KeyCode.KeyZ)
-			},
 			toggled: ActiveEditorProblemsContext,
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
