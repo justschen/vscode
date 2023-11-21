@@ -760,22 +760,8 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 	private rendeProblemsOffMessage(container: HTMLElement) {
 		const span = dom.append(container, dom.$('span'));
 		span.textContent = Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF;
-		// const link = document.createElement('a');
-		// link.textContent = localize('goToSetting', "Go to Setting");
-		// link.href = `command:workbench.action.openSettings?%5B%22%40tag%3Aworkbench.editor.showProblems%22%5D`;
-		// link.setAttribute('tabIndex', '0');
-		// container.appendChild(link);
 		this.setAriaLabel(Messages.MARKERS_PANEL_NO_PROBLEMS_TURNED_OFF);
 	}
-
-	// private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string, separator?: string): string {
-	// 	const encodedArgs = encodeURIComponent(JSON.stringify(args));
-	// 	let prefix = '';
-	// 	if (separator) {
-	// 		prefix = ` ${separator} `;
-	// 	}
-	// 	return `${prefix}[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
-	// }
 
 	private setAriaLabel(label: string): void {
 		this.widget.setAriaLabel(label);

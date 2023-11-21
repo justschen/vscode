@@ -82,26 +82,25 @@ class MarkersFileDecorations implements IWorkbenchContribution {
 
 	private _updateEnablement(): void {
 		const problem = this._configurationService.getValue('workbench.editor.showProblems');
-		const value = this._configurationService.getValue<{ decorations: { enabled: string } }>('problems');
-		const autoProblems = problem && value.decorations.enabled !== 'off';
-
 		if (problem === undefined) {
 			return;
 		}
+		const value = this._configurationService.getValue<{ decorations: { enabled: string } }>('problems');
+		const autoProblems = problem && value.decorations.enabled !== 'off';
+		const shouldEnable = (autoProblems || value.decorations.enabled === 'on');
 
-		if ((autoProblems || value.decorations.enabled === 'on') === this._enabled) {
-			if (!autoProblems && value.decorations.enabled === 'false') {
+		if (shouldEnable === this._enabled) {
+			if (!autoProblems && value.decorations.enabled === 'off') {
 				this._provider?.dispose();
 				this._provider = undefined;
 			}
 			return;
 		}
-		this._enabled = autoProblems as boolean || value.decorations.enabled === 'on';
+		this._enabled = shouldEnable;
 		if (this._enabled) {
 			const provider = new MarkersDecorationsProvider(this._markerService);
 			this._provider = this._decorationsService.registerDecorationsProvider(provider);
 		} else if (this._provider) {
-			this._enabled = autoProblems as boolean || value.decorations.enabled === 'on';
 			this._provider.dispose();
 		}
 	}

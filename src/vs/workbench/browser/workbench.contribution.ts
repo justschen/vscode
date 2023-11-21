@@ -383,7 +383,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			'workbench.editor.showProblems': {
 				'type': 'boolean',
 				'default': true,
-				'description': localize('showProblems', "Enable to show problems throughout the workbnench (modifies outline and explorer).")
+				'description': localize('showProblems', "Enable to show problems throughout the workbench.")
 			},
 			'workbench.localHistory.enabled': {
 				'type': 'boolean',

@@ -68,7 +68,7 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
 		@IEditorGroupsService editorGroupService: IEditorGroupsService,
 		@IFileService protected readonly fileService: IFileService
 	) {
-		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService,);
+		super(id, AbstractTextEditor.VIEW_STATE_PREFERENCE_KEY, telemetryService, instantiationService, storageService, textResourceConfigurationService, themeService, editorService, editorGroupService);
 
 		// Listen to configuration changes
 		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => this.handleConfigurationChangeEvent(e)));

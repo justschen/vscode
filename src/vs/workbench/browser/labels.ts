@@ -302,7 +302,7 @@ class ResourceLabelWidget extends IconLabel {
 		@IDecorationsService private readonly decorationsService: IDecorationsService,
 		@ILabelService private readonly labelService: ILabelService,
 		@ITextFileService private readonly textFileService: ITextFileService,
-		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService
 	) {
 		super(container, options);
 	}
