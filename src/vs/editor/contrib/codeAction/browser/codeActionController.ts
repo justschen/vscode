@@ -273,7 +273,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 				currentDecorations.clear();
 			},
 			onHover: async (action: CodeActionItem, token: CancellationToken) => {
-				await action.resolve(token);
+				// await action.resolveWithoutReturn(token);
 				if (token.isCancellationRequested) {
 					return;
 				}
