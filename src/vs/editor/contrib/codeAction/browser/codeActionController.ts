@@ -289,10 +289,16 @@ export class CodeActionController extends Disposable implements IEditorContribut
 					} else if (diagnostics && diagnostics.length > 0) {
 						const decorations: IModelDeltaDecoration[] = diagnostics.map(diagnostic => ({ range: diagnostic, options: CodeActionController.DECORATION }));
 						currentDecorations.set(decorations);
-						const diagnostic = diagnostics[0];
-						if (diagnostic.startLineNumber && diagnostic.startColumn) {
+						const diagnosticTexts: string[] = diagnostics.map(diagnostic => {
 							const selectionText = this._editor.getModel()?.getWordAtPosition({ lineNumber: diagnostic.startLineNumber, column: diagnostic.startColumn })?.word;
-							aria.status(localize('editingNewSelection', "Context: {0} at line {1} and column {2}.", selectionText, diagnostic.startLineNumber, diagnostic.startColumn));
+							return selectionText || '';
+						});
+
+						if (diagnosticTexts.length > 1) {
+							// alerts of multiple code action changes, gives context of current line/fix
+							aria.status(localize('editingMultipleNewSelections', "Code Action changes at {0} locations: Context at {1} on line {2} and column {3}.", diagnosticTexts.length, diagnosticTexts[0], diagnostics[0].startLineNumber, diagnostics[0].startColumn));
+						} else {
+							aria.status(localize('editingNewSelection', "Context: {0} on line {1} and column {2}.", diagnosticTexts[0], diagnostics[0].startLineNumber, diagnostics[0].startColumn));
 						}
 					}
 				} else {
