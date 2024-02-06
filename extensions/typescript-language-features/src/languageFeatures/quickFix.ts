@@ -248,15 +248,16 @@ class TypeScriptQuickFixProvider implements vscode.CodeActionProvider<VsCodeCode
 
 		const fixableDiagnostics = await this.supportedCodeActionProvider.getFixableDiagnosticsForContext(context);
 		if (!fixableDiagnostics.size || token.isCancellationRequested) {
+			console.log('return early in fixable diagnostrics');
 			return;
 		}
 
 		if (this.client.bufferSyncSupport.hasPendingDiagnostics(document.uri)) {
-			return;
 		}
 
 		await this.formattingConfigurationManager.ensureConfigurationForDocument(document, token);
 		if (token.isCancellationRequested) {
+			console.log('return early in configuration');
 			return;
 		}
 
@@ -264,6 +265,7 @@ class TypeScriptQuickFixProvider implements vscode.CodeActionProvider<VsCodeCode
 		for (const diagnostic of fixableDiagnostics.values) {
 			await this.getFixesForDiagnostic(document, file, diagnostic, results, token);
 			if (token.isCancellationRequested) {
+				console.log('return early in awaiting fixes for diagnnostics');
 				return;
 			}
 		}

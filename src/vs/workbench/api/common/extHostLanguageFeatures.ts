@@ -32,7 +32,7 @@ import { IExtHostApiDeprecationService } from 'vs/workbench/api/common/extHostAp
 import { Cache } from './cache';
 import { StopWatch } from 'vs/base/common/stopwatch';
 import { isCancellationError, NotImplementedError } from 'vs/base/common/errors';
-import { raceCancellationError } from 'vs/base/common/async';
+import { raceCancellationError, raceTimeout } from 'vs/base/common/async';
 import { isProposedApiEnabled } from 'vs/workbench/services/extensions/common/extensions';
 import { ExtHostTelemetry, IExtHostTelemetry } from 'vs/workbench/api/common/extHostTelemetry';
 import { localize } from 'vs/nls';
@@ -407,6 +407,7 @@ class CodeActionAdapter {
 
 	private readonly _cache = new Cache<vscode.CodeAction | vscode.Command>('CodeAction');
 	private readonly _disposables = new Map<number, DisposableStore>();
+	private check = false;
 
 	constructor(
 		private readonly _documents: ExtHostDocuments,
@@ -416,7 +417,35 @@ class CodeActionAdapter {
 		private readonly _logService: ILogService,
 		private readonly _extension: IExtensionDescription,
 		private readonly _apiDeprecation: IExtHostApiDeprecationService,
-	) { }
+	) {
+
+		this._documents.onDidChangeDocument(e => {
+			this.check = true;
+			// diagnostics may change,
+		});
+
+		this._diagnostics.onDidChangeDiagnostics(e => {
+
+			// track version
+			// if version changed
+			//
+
+		});
+
+	}
+
+	waitForDiagnostics(document: vscode.TextDocument): Promise<vscode.Diagnostic[] | undefined> {
+		let subscription: vscode.Disposable;
+		return raceTimeout(new Promise((resolve) => {
+			subscription = this._diagnostics.onDidChangeDiagnostics((e) => {
+				this.check = false;
+				if (e.uris.some(uri => uri.toString() === document.uri.toString())) {
+					subscription.dispose();
+					resolve(this._diagnostics.getDiagnostics(document.uri) as vscode.Diagnostic[]);
+				}
+			});
+		}), 1000, () => { subscription.dispose(); return undefined; });
+	}
 
 	async provideCodeActions(resource: URI, rangeOrSelection: IRange | ISelection, context: languages.CodeActionContext, token: CancellationToken): Promise<extHostProtocol.ICodeActionListDto | undefined> {
 
@@ -424,7 +453,7 @@ class CodeActionAdapter {
 		const ran = Selection.isISelection(rangeOrSelection)
 			? <vscode.Selection>typeConvert.Selection.to(rangeOrSelection)
 			: <vscode.Range>typeConvert.Range.to(rangeOrSelection);
-		const allDiagnostics: vscode.Diagnostic[] = [];
+		let allDiagnostics: vscode.Diagnostic[] = [];
 
 		for (const diagnostic of this._diagnostics.getDiagnostics(resource)) {
 			if (ran.intersection(diagnostic.range)) {
@@ -433,6 +462,27 @@ class CodeActionAdapter {
 					break;
 				}
 			}
+		}
+
+		// if doc is dirty, get doc again
+		if (this.check && context.trigger === 1) {
+			const temp = await this.waitForDiagnostics(doc);
+			if (temp) {
+				console.log('waiting for diagnostics');
+				allDiagnostics = [];
+				for (const diagnostic of temp) {
+					if (ran.intersection(diagnostic.range)) {
+						const newLen = allDiagnostics.push(diagnostic);
+						if (newLen > CodeActionAdapter._maxCodeActionsPerFile) {
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (context.trigger === 1) {
+			console.log(allDiagnostics);
 		}
 
 		const codeActionContext: vscode.CodeActionContext = {
@@ -491,6 +541,10 @@ class CodeActionAdapter {
 					disabled: candidate.disabled?.reason
 				});
 			}
+		}
+		if (context.trigger === 1) {
+			console.log('finished pushing actions and here');
+			console.log(actions);
 		}
 		return { cacheId, actions };
 	}
