@@ -49,6 +49,7 @@ export class IssueMainService implements IIssueMainService {
 	private static readonly DEFAULT_BACKGROUND_COLOR = '#1E1E1E';
 
 	private issueReporterWindow: BrowserWindow | null = null;
+	private issueReporterBackupWindow: BrowserWindow | null = null;
 	private issueReporterParentWindow: BrowserWindow | null = null;
 
 	private processExplorerWindow: BrowserWindow | null = null;
@@ -179,23 +180,128 @@ export class IssueMainService implements IIssueMainService {
 
 				this.issueReporterWindow.on('close', () => {
 					this.issueReporterWindow = null;
-
+					console.log('issueReporterWindow closed in close');
 					issueReporterDisposables.dispose();
 				});
 
 				this.issueReporterParentWindow.on('closed', () => {
 					if (this.issueReporterWindow) {
+						console.log('issueReporterWindow closed');
 						this.issueReporterWindow.close();
 						this.issueReporterWindow = null;
-
 						issueReporterDisposables.dispose();
 					}
 				});
 			}
 		}
 
-		if (this.issueReporterWindow) {
-			this.focusWindow(this.issueReporterWindow);
+		else if (this.issueReporterWindow) {
+
+			this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
+			if (this.issueReporterParentWindow) {
+				const issueReporterDisposables = new DisposableStore();
+
+				const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
+				const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
+
+				this.issueReporterWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
+					backgroundColor: data.styles.backgroundColor,
+					title: localize('issueReporter', "Issue Reporter"),
+					zoomLevel: data.zoomLevel,
+					alwaysOnTop: false
+				}, 'issue-reporter');
+
+				// Store into config object URL
+				issueReporterWindowConfigUrl.update({
+					appRoot: this.environmentMainService.appRoot,
+					windowId: this.issueReporterWindow.id,
+					userEnv: this.userEnv,
+					data,
+					disableExtensions: !!this.environmentMainService.disableExtensions,
+					os: {
+						type: type(),
+						arch: arch(),
+						release: release(),
+					},
+					product
+				});
+
+				this.issueReporterWindow.loadURL(
+					FileAccess.asBrowserUri(`vs/code/electron-sandbox/issue/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
+				);
+
+				this.issueReporterWindow.on('close', () => {
+					this.issueReporterWindow = null;
+					console.log('issueReporterWindow closed in close');
+					issueReporterDisposables.dispose();
+				});
+
+				this.issueReporterParentWindow.on('closed', () => {
+					if (this.issueReporterWindow) {
+						console.log('issueReporterWindow closed');
+						this.issueReporterWindow.close();
+						this.issueReporterWindow = null;
+						issueReporterDisposables.dispose();
+					}
+				});
+			}
+			// 	this.issueReporterWindow.close();
+
+			// 	this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
+			// 	if (this.issueReporterParentWindow) {
+			// 		const issueReporterDisposables = new DisposableStore();
+
+			// 		const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
+			// 		const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
+
+			// 		this.issueReporterBackupWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
+			// 			backgroundColor: data.styles.backgroundColor,
+			// 			title: localize('issueReporter', "Issue Reporter"),
+			// 			zoomLevel: data.zoomLevel,
+			// 			alwaysOnTop: false
+			// 		}, 'issue-reporter');
+
+			// 		this.issueReporterWindow = this.issueReporterBackupWindow;
+
+			// 		if (this.issueReporterWindow) {
+			// 			// Store into config object URL
+			// 			issueReporterWindowConfigUrl.update({
+			// 				appRoot: this.environmentMainService.appRoot,
+			// 				windowId: this.issueReporterWindow.id,
+			// 				userEnv: this.userEnv,
+			// 				data,
+			// 				disableExtensions: !!this.environmentMainService.disableExtensions,
+			// 				os: {
+			// 					type: type(),
+			// 					arch: arch(),
+			// 					release: release(),
+			// 				},
+			// 				product
+			// 			});
+
+			// 			this.issueReporterWindow.loadURL(
+			// 				FileAccess.asBrowserUri(`vs/code/electron-sandbox/issue/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
+			// 			);
+
+			// 			this.issueReporterWindow.on('close', () => {
+			// 				this.issueReporterWindow = null;
+
+			// 				issueReporterDisposables.dispose();
+			// 			});
+
+			// 			this.issueReporterParentWindow.on('closed', () => {
+			// 				if (this.issueReporterWindow) {
+			// 					this.issueReporterWindow.close();
+			// 					this.issueReporterWindow = null;
+
+			// 					issueReporterDisposables.dispose();
+			// 				}
+			// 			});
+
+			// 			this.issueReporterWindow.focus();
+			// 			console.log('reached end of this if');
+			// 		}
+			// 	}
 		}
 	}
 
@@ -453,6 +559,14 @@ export class IssueMainService implements IIssueMainService {
 			cts.cancel();
 		});
 		return (result ?? defaultResult) as boolean[];
+	}
+
+
+	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<void> {
+		const window = this.issueReporterWindowCheck();
+		const replyChannel = `vscode:triggerReporterMenu`;
+		const cts = new CancellationTokenSource();
+		window.sendWhenReady(replyChannel, cts.token, { replyChannel, extensionId, extensionName });
 	}
 
 	async $closeReporter(): Promise<void> {

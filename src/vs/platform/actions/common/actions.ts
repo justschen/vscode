@@ -163,6 +163,7 @@ export class MenuId {
 	static readonly InteractiveCellDelete = new MenuId('InteractiveCellDelete');
 	static readonly InteractiveCellExecute = new MenuId('InteractiveCellExecute');
 	static readonly InteractiveInputExecute = new MenuId('InteractiveInputExecute');
+	static readonly IssueReporter = new MenuId('IssueReporter');
 	static readonly NotebookToolbar = new MenuId('NotebookToolbar');
 	static readonly NotebookStickyScrollContext = new MenuId('NotebookStickyScrollContext');
 	static readonly NotebookCellTitle = new MenuId('NotebookCellTitle');
@@ -630,4 +631,6 @@ export function registerAction2(ctor: { new(): Action2 }): IDisposable {
 
 	return disposables;
 }
+
+export { ICommandAction };
 //#endregion

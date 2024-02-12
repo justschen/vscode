@@ -299,6 +299,14 @@ export class IssueReporter extends Disposable {
 		}
 	}
 
+	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<void> {
+		try {
+			await this.issueMainService.$sendReporterMenu(extension.id, extension.name);
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
 	private setEventHandlers(): void {
 		this.addEventListener('issue-type', 'change', (event: Event) => {
 			const issueType = parseInt((<HTMLInputElement>event.target).value);
@@ -1174,6 +1182,7 @@ export class IssueReporter extends Disposable {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 					const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 					if (selectedExtension) {
+						this.sendReporterMenu(selectedExtension);
 						selectedExtension.data = undefined;
 						selectedExtension.uri = undefined;
 					}

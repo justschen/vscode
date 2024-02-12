@@ -28,6 +28,9 @@ import { IIntegrityService } from 'vs/workbench/services/integrity/common/integr
 import { ILogService } from 'vs/platform/log/common/log';
 import { IIssueDataProvider, IIssueUriRequestHandler, IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
 import { mainWindow } from 'vs/base/browser/window';
+import { IMenuService, MenuId, MenuItemAction } from 'vs/platform/actions/common/actions';
+import { IAction } from 'vs/base/common/actions';
+import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 
 export class NativeIssueService implements IWorkbenchIssueService {
 	declare readonly _serviceBrand: undefined;
@@ -49,6 +52,8 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		@IIntegrityService private readonly integrityService: IIntegrityService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@ILogService private readonly logService: ILogService,
+		@IMenuService private readonly menuService: IMenuService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService
 	) {
 		ipcRenderer.on('vscode:triggerIssueUriRequestHandler', async (event: unknown, request: { replyChannel: string; extensionId: string }) => {
 			const result = await this.getIssueReporterUri(request.extensionId, CancellationToken.None);
@@ -82,6 +87,45 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			const result = [this._providers.has(extensionId.toLowerCase()), this._handlers.has(extensionId.toLowerCase())];
 			ipcRenderer.send('vscode:triggerReporterStatusResponse', result);
 		});
+		ipcRenderer.on('vscode:triggerReporterMenu', async (event, arg) => {
+			const extensionId = arg.extensionId;
+			const extension = await this.extensionService.getExtension(extensionId);
+
+			console.log(extensionId);
+
+			// creates menu from contributed
+			const menu = menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
+			console.log(menu);
+
+			// render menu
+			const actions = menu
+				.getActions({ renderShortTitle: true })
+				.flatMap(entry => entry[1]);
+			console.log(actions);
+			actions.forEach(action => {
+				console.log(action);
+				if (action.item && 'source' in action.item && action.item.source?.id === extensionId) {
+					console.log('got the correct source, printing here');
+					action.run();
+				}
+			});
+			menu.dispose();
+		});
+	}
+
+	async createMenuAction(id: string): Promise<IAction> {
+		const action: IAction = {
+			id: id,
+			label: 'Menu Action',
+			run: () => {
+				// Action logic goes here
+			},
+			tooltip: '',
+			class: undefined,
+			enabled: false
+		};
+
+		return action;
 	}
 
 	async openReporter(dataOverrides: Partial<IssueReporterData> = {}): Promise<void> {
