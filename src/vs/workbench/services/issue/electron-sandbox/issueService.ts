@@ -91,14 +91,12 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		});
 		ipcRenderer.on('vscode:triggerReporterMenu', async (event, arg) => {
 			const extensionId = arg.extensionId;
-			const extension = await this.extensionService.getExtension(extensionId);
+
 			// creates menu from contributed
 			const menu = menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
 
-			// render menu
-			const actions = menu
-				.getActions({ renderShortTitle: true })
-				.flatMap(entry => entry[1]);
+			// render menu and dispose
+			const actions = menu.getActions({ renderShortTitle: true }).flatMap(entry => entry[1]);
 			actions.forEach(action => {
 				if (action.item && 'source' in action.item && action.item.source?.id === extensionId) {
 					this.foundExtension = true;

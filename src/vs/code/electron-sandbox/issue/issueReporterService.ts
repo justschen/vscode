@@ -1184,7 +1184,11 @@ export class IssueReporter extends Disposable {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 					const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 					if (selectedExtension) {
+						const iconElement = document.createElement('span');
+						iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+						this.setLoading(iconElement);
 						const openReporterData = await this.sendReporterMenu(selectedExtension);
+						this.removeLoading(iconElement);
 						if (openReporterData) {
 							this.configuration.data = openReporterData;
 						} else {
@@ -1215,11 +1219,6 @@ export class IssueReporter extends Disposable {
 
 	private async updateExtensionStatus(extension: IssueReporterExtensionData) {
 		this.issueReporterModel.update({ selectedExtension: extension });
-		console.log('in update extension status: ');
-		console.log(this.configuration.data.issueBody);
-		console.log(this.configuration.data.extensionId);
-		console.log(this.configuration.data.uri);
-		console.log(this.configuration.data.data);
 		const template = this.configuration.data.issueBody;
 		if (template) {
 			const descriptionTextArea = this.getElementById('description')!;
