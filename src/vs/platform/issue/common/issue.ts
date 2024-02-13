@@ -70,8 +70,8 @@ export interface IssueReporterData extends WindowData {
 	restrictedMode: boolean;
 	isUnsupported: boolean;
 	githubAccessToken: string;
-	readonly issueTitle?: string;
-	readonly issueBody?: string;
+	issueTitle?: string;
+	issueBody?: string;
 	data?: string;
 	uri?: UriComponents;
 }
@@ -138,6 +138,6 @@ export interface IIssueMainService {
 	$getIssueReporterData(extensionId: string): Promise<string>;
 	$getIssueReporterTemplate(extensionId: string): Promise<string>;
 	$getReporterStatus(extensionId: string, extensionName: string): Promise<boolean[]>;
-	$sendReporterMenu(extensionId: string, extensionName: string): Promise<void>;
+	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData>;
 	$closeReporter(): Promise<void>;
 }

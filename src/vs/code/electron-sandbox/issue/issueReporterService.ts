@@ -299,11 +299,13 @@ export class IssueReporter extends Disposable {
 		}
 	}
 
-	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<void> {
+	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<IssueReporterData> {
 		try {
-			await this.issueMainService.$sendReporterMenu(extension.id, extension.name);
+			const data = await this.issueMainService.$sendReporterMenu(extension.id, extension.name);
+			return data;
 		} catch (e) {
 			console.error(e);
+			return e;
 		}
 	}
 
@@ -1182,9 +1184,14 @@ export class IssueReporter extends Disposable {
 					this.issueReporterModel.update({ selectedExtension: matches[0] });
 					const selectedExtension = this.issueReporterModel.getData().selectedExtension;
 					if (selectedExtension) {
-						this.sendReporterMenu(selectedExtension);
-						selectedExtension.data = undefined;
-						selectedExtension.uri = undefined;
+						const openReporterData = await this.sendReporterMenu(selectedExtension);
+						if (openReporterData) {
+							this.configuration.data = openReporterData;
+						} else {
+							selectedExtension.data = undefined;
+							selectedExtension.uri = undefined;
+						}
+						// this.updateExtensionStatus(selectedExtension);
 					}
 					this.updateExtensionStatus(matches[0]);
 				} else {
@@ -1208,6 +1215,11 @@ export class IssueReporter extends Disposable {
 
 	private async updateExtensionStatus(extension: IssueReporterExtensionData) {
 		this.issueReporterModel.update({ selectedExtension: extension });
+		console.log('in update extension status: ');
+		console.log(this.configuration.data.issueBody);
+		console.log(this.configuration.data.extensionId);
+		console.log(this.configuration.data.uri);
+		console.log(this.configuration.data.data);
 		const template = this.configuration.data.issueBody;
 		if (template) {
 			const descriptionTextArea = this.getElementById('description')!;
@@ -1221,73 +1233,76 @@ export class IssueReporter extends Disposable {
 
 		const data = this.configuration.data.data;
 		if (data) {
+			this.issueReporterModel.update({ extensionData: data });
+			extension.data = data;
 			const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
 			show(extensionDataBlock);
-			this.issueReporterModel.update({ extensionData: data });
+			this.renderBlocks();
 		}
 
 		const uri = this.configuration.data.uri;
 		if (uri) {
+			extension.uri = uri;
 			this.updateIssueReporterUri(extension);
 		}
 
 		// if extension does not have provider/handles, will check for either. If extension is already active, IPC will return [false, false] and will proceed as normal.
-		if (!extension.hasIssueDataProviders && !extension.hasIssueUriRequestHandler) {
-			const toActivate = await this.getReporterStatus(extension);
-			extension.hasIssueDataProviders = toActivate[0];
-			extension.hasIssueUriRequestHandler = toActivate[1];
-			this.renderBlocks();
-		}
+		// if (!extension.hasIssueDataProviders && !extension.hasIssueUriRequestHandler) {
+		// 	const toActivate = await this.getReporterStatus(extension);
+		// 	extension.hasIssueDataProviders = toActivate[0];
+		// 	extension.hasIssueUriRequestHandler = toActivate[1];
+		// 	this.renderBlocks();
+		// }
 
-		if (extension.hasIssueUriRequestHandler && extension.hasIssueDataProviders) {
-			// update this first
-			const template = await this.getIssueTemplateFromExtension(extension);
-			const descriptionTextArea = this.getElementById('description')!;
-			const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
-			if (descriptionText === '' || !descriptionText.includes(template)) {
-				const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
-				(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
-				this.issueReporterModel.update({ issueDescription: fullTextArea });
-			}
-			const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
-			show(extensionDataBlock);
+		// if (extension.hasIssueUriRequestHandler && extension.hasIssueDataProviders) {
+		// 	// update this first
+		// 	const template = await this.getIssueTemplateFromExtension(extension);
+		// 	const descriptionTextArea = this.getElementById('description')!;
+		// 	const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
+		// 	if (descriptionText === '' || !descriptionText.includes(template)) {
+		// 		const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
+		// 		(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
+		// 		this.issueReporterModel.update({ issueDescription: fullTextArea });
+		// 	}
+		// 	const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
+		// 	show(extensionDataBlock);
 
-			// Start loading for extension data.
-			const iconElement = document.createElement('span');
-			iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-			this.setLoading(iconElement);
-			await this.getIssueDataFromExtension(extension);
-			this.removeLoading(iconElement);
+		// 	// Start loading for extension data.
+		// 	const iconElement = document.createElement('span');
+		// 	iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+		// 	this.setLoading(iconElement);
+		// 	await this.getIssueDataFromExtension(extension);
+		// 	this.removeLoading(iconElement);
 
-			// then update this
-			this.updateIssueReporterUri(extension);
+		// 	// then update this
+		// 	this.updateIssueReporterUri(extension);
 
-		} else if (extension.hasIssueUriRequestHandler) {
-			this.updateIssueReporterUri(extension);
-		} else if (extension.hasIssueDataProviders) {
-			const template = await this.getIssueTemplateFromExtension(extension);
-			const descriptionTextArea = this.getElementById('description')!;
-			const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
-			if (descriptionText === '' || !descriptionText.includes(template)) {
-				const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
-				(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
-				this.issueReporterModel.update({ issueDescription: fullTextArea });
-			}
-			const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
-			show(extensionDataBlock);
+		// } else if (extension.hasIssueUriRequestHandler) {
+		// 	this.updateIssueReporterUri(extension);
+		// } else if (extension.hasIssueDataProviders) {
+		// 	const template = await this.getIssueTemplateFromExtension(extension);
+		// 	const descriptionTextArea = this.getElementById('description')!;
+		// 	const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
+		// 	if (descriptionText === '' || !descriptionText.includes(template)) {
+		// 		const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
+		// 		(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
+		// 		this.issueReporterModel.update({ issueDescription: fullTextArea });
+		// 	}
+		// 	const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
+		// 	show(extensionDataBlock);
 
-			// Start loading for extension data.
-			const iconElement = document.createElement('span');
-			iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-			this.setLoading(iconElement);
-			await this.getIssueDataFromExtension(extension);
-			this.removeLoading(iconElement);
-		} else {
-			this.validateSelectedExtension();
-			this.issueReporterModel.update({ extensionData: extension.data ?? undefined });
-			const title = (<HTMLInputElement>this.getElementById('issue-title')).value;
-			this.searchExtensionIssues(title);
-		}
+		// 	// Start loading for extension data.
+		// 	const iconElement = document.createElement('span');
+		// 	iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+		// 	this.setLoading(iconElement);
+		// 	await this.getIssueDataFromExtension(extension);
+		// 	this.removeLoading(iconElement);
+
+		this.validateSelectedExtension();
+		// this.issueReporterModel.update({ extensionData: extension.data ?? undefined });
+		const title = (<HTMLInputElement>this.getElementById('issue-title')).value;
+		this.searchExtensionIssues(title);
+
 
 		this.updatePreviewButtonState();
 		this.renderBlocks();

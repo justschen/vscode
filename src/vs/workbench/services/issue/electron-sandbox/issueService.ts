@@ -38,6 +38,8 @@ export class NativeIssueService implements IWorkbenchIssueService {
 	private readonly _handlers = new Map<string, IIssueUriRequestHandler>();
 	private readonly _providers = new Map<string, IIssueDataProvider>();
 	private readonly _activationEventReader = new ImplicitActivationAwareReader();
+	private issueReporterData!: IssueReporterData;
+	private foundExtension = false;
 
 	constructor(
 		@IIssueMainService private readonly issueMainService: IIssueMainService,
@@ -90,22 +92,16 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		ipcRenderer.on('vscode:triggerReporterMenu', async (event, arg) => {
 			const extensionId = arg.extensionId;
 			const extension = await this.extensionService.getExtension(extensionId);
-
-			console.log(extensionId);
-
 			// creates menu from contributed
 			const menu = menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
-			console.log(menu);
 
 			// render menu
 			const actions = menu
 				.getActions({ renderShortTitle: true })
 				.flatMap(entry => entry[1]);
-			console.log(actions);
 			actions.forEach(action => {
-				console.log(action);
 				if (action.item && 'source' in action.item && action.item.source?.id === extensionId) {
-					console.log('got the correct source, printing here');
+					this.foundExtension = true;
 					action.run();
 				}
 			});
@@ -198,7 +194,17 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			isUnsupported,
 			githubAccessToken
 		}, dataOverrides);
+		console.log('in openREporter got', issueReporterData);
+		this.issueReporterData = issueReporterData;
+		if (this.foundExtension) {
+			console.log('extension has been found, trigger IPC renderer');
+			ipcRenderer.send('vscode:triggerReporterMenuResponse', this.issueReporterData);
+		}
 		return this.issueMainService.openReporter(issueReporterData);
+	}
+
+	getIssueReporterData(): IssueReporterData {
+		return this.issueReporterData;
 	}
 
 	openProcessExplorer(): Promise<void> {

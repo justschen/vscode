@@ -631,6 +631,4 @@ export function registerAction2(ctor: { new(): Action2 }): IDisposable {
 
 	return disposables;
 }
-
-export { ICommandAction };
 //#endregion

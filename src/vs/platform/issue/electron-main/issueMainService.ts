@@ -196,55 +196,8 @@ export class IssueMainService implements IIssueMainService {
 		}
 
 		else if (this.issueReporterWindow) {
+			// this.issueReporterWindow.webContents.send('vscode:triggerReporterMenuResponse', data);
 
-			this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
-			if (this.issueReporterParentWindow) {
-				const issueReporterDisposables = new DisposableStore();
-
-				const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
-				const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
-
-				this.issueReporterWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
-					backgroundColor: data.styles.backgroundColor,
-					title: localize('issueReporter', "Issue Reporter"),
-					zoomLevel: data.zoomLevel,
-					alwaysOnTop: false
-				}, 'issue-reporter');
-
-				// Store into config object URL
-				issueReporterWindowConfigUrl.update({
-					appRoot: this.environmentMainService.appRoot,
-					windowId: this.issueReporterWindow.id,
-					userEnv: this.userEnv,
-					data,
-					disableExtensions: !!this.environmentMainService.disableExtensions,
-					os: {
-						type: type(),
-						arch: arch(),
-						release: release(),
-					},
-					product
-				});
-
-				this.issueReporterWindow.loadURL(
-					FileAccess.asBrowserUri(`vs/code/electron-sandbox/issue/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
-				);
-
-				this.issueReporterWindow.on('close', () => {
-					this.issueReporterWindow = null;
-					console.log('issueReporterWindow closed in close');
-					issueReporterDisposables.dispose();
-				});
-
-				this.issueReporterParentWindow.on('closed', () => {
-					if (this.issueReporterWindow) {
-						console.log('issueReporterWindow closed');
-						this.issueReporterWindow.close();
-						this.issueReporterWindow = null;
-						issueReporterDisposables.dispose();
-					}
-				});
-			}
 			// 	this.issueReporterWindow.close();
 
 			// 	this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
@@ -298,7 +251,7 @@ export class IssueMainService implements IIssueMainService {
 			// 				}
 			// 			});
 
-			// 			this.issueReporterWindow.focus();
+			this.issueReporterWindow.focus();
 			// 			console.log('reached end of this if');
 			// 		}
 			// 	}
@@ -562,11 +515,16 @@ export class IssueMainService implements IIssueMainService {
 	}
 
 
-	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<void> {
+	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData> {
 		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerReporterMenu`;
 		const cts = new CancellationTokenSource();
 		window.sendWhenReady(replyChannel, cts.token, { replyChannel, extensionId, extensionName });
+		const result = await raceTimeout(new Promise(resolve => validatedIpcMain.once('vscode:triggerReporterMenuResponse', (_: unknown, data: IssueReporterData) => resolve(data))), 2000, () => {
+			this.logService.error('Error: Extension timed out waiting for meny response');
+			cts.cancel();
+		});
+		return result as IssueReporterData;
 	}
 
 	async $closeReporter(): Promise<void> {
