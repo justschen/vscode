@@ -1192,6 +1192,9 @@ export class IssueReporter extends Disposable {
 						if (openReporterData) {
 							this.configuration.data = openReporterData;
 						} else {
+							this.configuration.data.issueTitle = undefined;
+							this.configuration.data.issueBody = undefined;
+							this.configuration.data.data = undefined;
 							selectedExtension.data = undefined;
 							selectedExtension.uri = undefined;
 						}
