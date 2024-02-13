@@ -299,13 +299,13 @@ export class IssueReporter extends Disposable {
 		}
 	}
 
-	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<IssueReporterData> {
+	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<IssueReporterData | undefined> {
 		try {
 			const data = await this.issueMainService.$sendReporterMenu(extension.id, extension.name);
 			return data;
 		} catch (e) {
 			console.error(e);
-			return e;
+			return undefined;
 		}
 	}
 

@@ -455,16 +455,16 @@ export class IssueMainService implements IIssueMainService {
 	}
 
 
-	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData> {
+	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined> {
 		const window = this.issueReporterWindowCheck();
 		const replyChannel = `vscode:triggerReporterMenu`;
 		const cts = new CancellationTokenSource();
 		window.sendWhenReady(replyChannel, cts.token, { replyChannel, extensionId, extensionName });
-		const result = await raceTimeout(new Promise(resolve => validatedIpcMain.once('vscode:triggerReporterMenuResponse', (_: unknown, data: IssueReporterData) => resolve(data))), 2000, () => {
-			this.logService.error('Error: Extension timed out waiting for meny response');
+		const result = await raceTimeout(new Promise(resolve => validatedIpcMain.once('vscode:triggerReporterMenuResponse', (_: unknown, data: IssueReporterData | undefined) => resolve(data))), 2000, () => {
+			this.logService.error('Error: Extension timed out waiting for menu response');
 			cts.cancel();
 		});
-		return result as IssueReporterData;
+		return result as IssueReporterData | undefined;
 	}
 
 	async $closeReporter(): Promise<void> {

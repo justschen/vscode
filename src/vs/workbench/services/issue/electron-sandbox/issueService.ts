@@ -101,6 +101,8 @@ export class NativeIssueService implements IWorkbenchIssueService {
 				if (action.item && 'source' in action.item && action.item.source?.id === extensionId) {
 					this.foundExtension = true;
 					action.run();
+				} else {
+					ipcRenderer.send('vscode:triggerReporterMenuResponse', undefined);
 				}
 			});
 			menu.dispose();
