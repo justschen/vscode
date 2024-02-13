@@ -28,7 +28,7 @@ import { IIntegrityService } from 'vs/workbench/services/integrity/common/integr
 import { ILogService } from 'vs/platform/log/common/log';
 import { IIssueDataProvider, IIssueUriRequestHandler, IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
 import { mainWindow } from 'vs/base/browser/window';
-import { IMenuService, MenuId, MenuItemAction } from 'vs/platform/actions/common/actions';
+import { IMenuService, MenuId } from 'vs/platform/actions/common/actions';
 import { IAction } from 'vs/base/common/actions';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 
@@ -192,10 +192,8 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			isUnsupported,
 			githubAccessToken
 		}, dataOverrides);
-		console.log('in openREporter got', issueReporterData);
 		this.issueReporterData = issueReporterData;
 		if (this.foundExtension) {
-			console.log('extension has been found, trigger IPC renderer');
 			ipcRenderer.send('vscode:triggerReporterMenuResponse', this.issueReporterData);
 		}
 		return this.issueMainService.openReporter(issueReporterData);
