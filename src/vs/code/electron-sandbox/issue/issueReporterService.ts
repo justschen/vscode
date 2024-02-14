@@ -1192,8 +1192,11 @@ export class IssueReporter extends Disposable {
 						if (openReporterData) {
 							this.configuration.data = openReporterData;
 						} else {
+							// case when previous extension had command
 							this.configuration.data.issueBody = undefined;
 							this.configuration.data.data = undefined;
+
+							// case when previous extension was opened from normal openIssueReporter command
 							selectedExtension.data = undefined;
 							selectedExtension.uri = undefined;
 						}
@@ -1253,7 +1256,6 @@ export class IssueReporter extends Disposable {
 			const toActivate = await this.getReporterStatus(extension);
 			extension.hasIssueDataProviders = toActivate[0];
 			extension.hasIssueUriRequestHandler = toActivate[1];
-			this.renderBlocks();
 		}
 
 		if (extension.hasIssueUriRequestHandler && extension.hasIssueDataProviders) {
