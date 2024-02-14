@@ -1248,7 +1248,7 @@ export class IssueReporter extends Disposable {
 			this.updateIssueReporterUri(extension);
 		}
 
-		// if extension does not have provider / handles, will check for either.If extension is already active, IPC will return [false, false] and will proceed as normal.
+		// if extension does not have provider/handles, will check for either. If extension is already active, IPC will return [false, false] and will proceed as normal.
 		if (!extension.hasIssueDataProviders && !extension.hasIssueUriRequestHandler) {
 			const toActivate = await this.getReporterStatus(extension);
 			extension.hasIssueDataProviders = toActivate[0];

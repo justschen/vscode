@@ -29,7 +29,6 @@ import { ILogService } from 'vs/platform/log/common/log';
 import { IIssueDataProvider, IIssueUriRequestHandler, IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
 import { mainWindow } from 'vs/base/browser/window';
 import { IMenuService, MenuId } from 'vs/platform/actions/common/actions';
-import { IAction } from 'vs/base/common/actions';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 
 export class NativeIssueService implements IWorkbenchIssueService {
@@ -93,7 +92,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			const extensionId = arg.extensionId;
 
 			// creates menu from contributed
-			const menu = menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
+			const menu = this.menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
 
 			// render menu and dispose
 			const actions = menu.getActions({ renderShortTitle: true }).flatMap(entry => entry[1]);
@@ -107,21 +106,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			});
 			menu.dispose();
 		});
-	}
-
-	async createMenuAction(id: string): Promise<IAction> {
-		const action: IAction = {
-			id: id,
-			label: 'Menu Action',
-			run: () => {
-				// Action logic goes here
-			},
-			tooltip: '',
-			class: undefined,
-			enabled: false
-		};
-
-		return action;
 	}
 
 	async openReporter(dataOverrides: Partial<IssueReporterData> = {}): Promise<void> {
@@ -200,10 +184,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			ipcRenderer.send('vscode:triggerReporterMenuResponse', this.issueReporterData);
 		}
 		return this.issueMainService.openReporter(issueReporterData);
-	}
-
-	getIssueReporterData(): IssueReporterData {
-		return this.issueReporterData;
 	}
 
 	openProcessExplorer(): Promise<void> {

@@ -3,11 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMenuService } from 'vs/platform/actions/common/actions';
-import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { registerMainProcessRemoteService } from 'vs/platform/ipc/electron-sandbox/services';
 import { IIssueMainService } from 'vs/platform/issue/common/issue';
 
 registerMainProcessRemoteService(IIssueMainService, 'issue');
-registerMainProcessRemoteService(IMenuService, 'menu');
-registerMainProcessRemoteService(IContextKeyService, 'contextKey');
