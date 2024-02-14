@@ -1192,15 +1192,13 @@ export class IssueReporter extends Disposable {
 						if (openReporterData) {
 							this.configuration.data = openReporterData;
 						} else {
-							this.configuration.data.issueTitle = undefined;
 							this.configuration.data.issueBody = undefined;
 							this.configuration.data.data = undefined;
 							selectedExtension.data = undefined;
 							selectedExtension.uri = undefined;
 						}
-						// this.updateExtensionStatus(selectedExtension);
+						this.updateExtensionStatus(selectedExtension);
 					}
-					this.updateExtensionStatus(matches[0]);
 				} else {
 					this.issueReporterModel.update({ selectedExtension: undefined });
 					this.clearSearchResults();
@@ -1222,6 +1220,8 @@ export class IssueReporter extends Disposable {
 
 	private async updateExtensionStatus(extension: IssueReporterExtensionData) {
 		this.issueReporterModel.update({ selectedExtension: extension });
+
+		// uses this.configuuration.data to ensure that data is coming from `openReporter` command.
 		const template = this.configuration.data.issueBody;
 		if (template) {
 			const descriptionTextArea = this.getElementById('description')!;
@@ -1248,63 +1248,62 @@ export class IssueReporter extends Disposable {
 			this.updateIssueReporterUri(extension);
 		}
 
-		// if extension does not have provider/handles, will check for either. If extension is already active, IPC will return [false, false] and will proceed as normal.
-		// if (!extension.hasIssueDataProviders && !extension.hasIssueUriRequestHandler) {
-		// 	const toActivate = await this.getReporterStatus(extension);
-		// 	extension.hasIssueDataProviders = toActivate[0];
-		// 	extension.hasIssueUriRequestHandler = toActivate[1];
-		// 	this.renderBlocks();
-		// }
+		// if extension does not have provider / handles, will check for either.If extension is already active, IPC will return [false, false] and will proceed as normal.
+		if (!extension.hasIssueDataProviders && !extension.hasIssueUriRequestHandler) {
+			const toActivate = await this.getReporterStatus(extension);
+			extension.hasIssueDataProviders = toActivate[0];
+			extension.hasIssueUriRequestHandler = toActivate[1];
+			this.renderBlocks();
+		}
 
-		// if (extension.hasIssueUriRequestHandler && extension.hasIssueDataProviders) {
-		// 	// update this first
-		// 	const template = await this.getIssueTemplateFromExtension(extension);
-		// 	const descriptionTextArea = this.getElementById('description')!;
-		// 	const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
-		// 	if (descriptionText === '' || !descriptionText.includes(template)) {
-		// 		const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
-		// 		(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
-		// 		this.issueReporterModel.update({ issueDescription: fullTextArea });
-		// 	}
-		// 	const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
-		// 	show(extensionDataBlock);
+		if (extension.hasIssueUriRequestHandler && extension.hasIssueDataProviders) {
+			// update this first
+			const template = await this.getIssueTemplateFromExtension(extension);
+			const descriptionTextArea = this.getElementById('description')!;
+			const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
+			if (descriptionText === '' || !descriptionText.includes(template)) {
+				const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
+				(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
+				this.issueReporterModel.update({ issueDescription: fullTextArea });
+			}
+			const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
+			show(extensionDataBlock);
 
-		// 	// Start loading for extension data.
-		// 	const iconElement = document.createElement('span');
-		// 	iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-		// 	this.setLoading(iconElement);
-		// 	await this.getIssueDataFromExtension(extension);
-		// 	this.removeLoading(iconElement);
+			// Start loading for extension data.
+			const iconElement = document.createElement('span');
+			iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+			this.setLoading(iconElement);
+			await this.getIssueDataFromExtension(extension);
+			this.removeLoading(iconElement);
 
-		// 	// then update this
-		// 	this.updateIssueReporterUri(extension);
+			// then update this
+			this.updateIssueReporterUri(extension);
 
-		// } else if (extension.hasIssueUriRequestHandler) {
-		// 	this.updateIssueReporterUri(extension);
-		// } else if (extension.hasIssueDataProviders) {
-		// 	const template = await this.getIssueTemplateFromExtension(extension);
-		// 	const descriptionTextArea = this.getElementById('description')!;
-		// 	const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
-		// 	if (descriptionText === '' || !descriptionText.includes(template)) {
-		// 		const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
-		// 		(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
-		// 		this.issueReporterModel.update({ issueDescription: fullTextArea });
-		// 	}
-		// 	const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
-		// 	show(extensionDataBlock);
+		} else if (extension.hasIssueUriRequestHandler) {
+			this.updateIssueReporterUri(extension);
+		} else if (extension.hasIssueDataProviders) {
+			const template = await this.getIssueTemplateFromExtension(extension);
+			const descriptionTextArea = this.getElementById('description')!;
+			const descriptionText = (descriptionTextArea as HTMLTextAreaElement).value;
+			if (descriptionText === '' || !descriptionText.includes(template)) {
+				const fullTextArea = descriptionText + (descriptionText === '' ? '' : '\n') + template;
+				(descriptionTextArea as HTMLTextAreaElement).value = fullTextArea;
+				this.issueReporterModel.update({ issueDescription: fullTextArea });
+			}
+			const extensionDataBlock = mainWindow.document.querySelector('.block-extension-data')!;
+			show(extensionDataBlock);
 
-		// 	// Start loading for extension data.
-		// 	const iconElement = document.createElement('span');
-		// 	iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
-		// 	this.setLoading(iconElement);
-		// 	await this.getIssueDataFromExtension(extension);
-		// 	this.removeLoading(iconElement);
+			// Start loading for extension data.
+			const iconElement = document.createElement('span');
+			iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+			this.setLoading(iconElement);
+			await this.getIssueDataFromExtension(extension);
+			this.removeLoading(iconElement);
+		}
 
 		this.validateSelectedExtension();
-		// this.issueReporterModel.update({ extensionData: extension.data ?? undefined });
 		const title = (<HTMLInputElement>this.getElementById('issue-title')).value;
 		this.searchExtensionIssues(title);
-
 
 		this.updatePreviewButtonState();
 		this.renderBlocks();

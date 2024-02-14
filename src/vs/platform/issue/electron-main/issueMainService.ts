@@ -49,7 +49,6 @@ export class IssueMainService implements IIssueMainService {
 	private static readonly DEFAULT_BACKGROUND_COLOR = '#1E1E1E';
 
 	private issueReporterWindow: BrowserWindow | null = null;
-	private issueReporterBackupWindow: BrowserWindow | null = null;
 	private issueReporterParentWindow: BrowserWindow | null = null;
 
 	private processExplorerWindow: BrowserWindow | null = null;

@@ -194,6 +194,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			isUnsupported,
 			githubAccessToken
 		}, dataOverrides);
+
 		this.issueReporterData = issueReporterData;
 		if (this.foundExtension) {
 			ipcRenderer.send('vscode:triggerReporterMenuResponse', this.issueReporterData);
