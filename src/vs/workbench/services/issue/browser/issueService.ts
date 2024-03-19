@@ -5,9 +5,8 @@
 
 import { getZoomLevel } from 'vs/base/browser/browser';
 import * as dom from 'vs/base/browser/dom';
-import { CancellationToken } from 'vs/base/common/cancellation';
-import { IDisposable, toDisposable } from 'vs/base/common/lifecycle';
-import { userAgent } from 'vs/base/common/platform';
+import { DisposableStore, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
+import { IProcessEnvironment, userAgent } from 'vs/base/common/platform';
 import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { IIssueMainService, IssueReporterData, IssueReporterStyles } from 'vs/platform/issue/common/issue';
@@ -24,24 +23,38 @@ import { IAuthenticationService } from 'vs/workbench/services/authentication/com
 import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
 import { foreground, textLinkForeground, textLinkActiveForeground, inputBackground, inputForeground, inputBorder, inputActiveOptionBorder, inputValidationErrorBorder, inputValidationErrorBackground, inputValidationErrorForeground, buttonBackground, buttonForeground, buttonHoverBackground, scrollbarSliderActiveBackground, scrollbarSliderBackground, scrollbarSliderHoverBackground } from 'vs/platform/theme/common/colorRegistry';
 import { SIDE_BAR_BACKGROUND } from 'vs/workbench/common/theme';
+import { IAuxiliaryWindowService } from 'vs/workbench/services/auxiliaryWindow/browser/auxiliaryWindowService';
+import BaseHtml from './issueReporterPage';
+import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+// import { IssueReporter } from 'vs/code/browser/issue/issueReporterService';
+// import { IEnvironmentMainService } from 'vs/platform/environment/electron-main/environmentMainService';
+// import product from 'vs/platform/product/common/product';
 
 export class WebIssueService implements IWorkbenchIssueService {
 	declare readonly _serviceBrand: undefined;
 
-	private readonly _handlers = new Map<string, IIssueUriRequestHandler>();
-	private readonly _providers = new Map<string, IIssueDataProvider>();
 
 	constructor(
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IProductService private readonly productService: IProductService,
 		@ILogService private readonly logService: ILogService,
-		@IIssueMainService private readonly issueMainService: IIssueMainService,
+		// @IIssueMainService private readonly issueMainService: IIssueMainService,
 		@IThemeService private readonly themeService: IThemeService,
 		@IWorkbenchAssignmentService private readonly experimentService: IWorkbenchAssignmentService,
 		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
 		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
 		@IIntegrityService private readonly integrityService: IIntegrityService,
+		@IAuxiliaryWindowService private readonly auxWindowService: IAuxiliaryWindowService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
+
 	) { }
+
+	registerIssueUriRequestHandler(extensionId: string, handler: IIssueUriRequestHandler): IDisposable {
+		throw new Error('Method not implemented.');
+	}
+	registerIssueDataProvider(extensionId: string, handler: IIssueDataProvider): IDisposable {
+		throw new Error('Method not implemented.');
+	}
 
 	//TODO @TylerLeonhardt @Tyriar to implement a process explorer for the web
 	async openProcessExplorer(): Promise<void> {
@@ -83,22 +96,93 @@ export class WebIssueService implements IWorkbenchIssueService {
 					isUnsupported,
 					githubAccessToken
 				}, options);
-				this.issueMainService.openReporter(issueReporterData);
+
+				const disposables = new DisposableStore();
+
+				// Auxiliary Window
+				const auxiliaryWindow = disposables.add(await this.auxWindowService.open());
+
+				// Editor Part
+				const editorPartContainer = document.createElement('div');
+				editorPartContainer.classList.add('part', 'editor');
+				editorPartContainer.setAttribute('role', 'main');
+				editorPartContainer.style.position = 'relative';
+				dom.safeInnerHtml(editorPartContainer, BaseHtml());
+				auxiliaryWindow.container.appendChild(editorPartContainer);
+
+				const configuration = {
+					disableExtensions: false,
+					data: issueReporterData,
+					os: {
+						type: '',
+						arch: '',
+						release: '',
+					},
+				};
+
+				// const issueReporter = this.instantiationService.createInstance(IssueReporter, configuration);
+				// issueReporter.render();
+				// mainWindow.document.body.style.display = 'block';
+				// issueReporter.setInitialFocus();
+				console.log(issueReporterData);
+				// if (!this.issueReporterWindow) {
+				//  this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
+				//  if (this.issueReporterParentWindow) {
+				//      const issueReporterDisposables = new DisposableStore();
+
+				//      const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
+				//      const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
+
+				//      this.issueReporterWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
+				//          backgroundColor: data.styles.backgroundColor,
+				//          title: localize('issueReporter', "Issue Reporter"),
+				//          zoomLevel: data.zoomLevel,
+				//          alwaysOnTop: false
+				//      }, 'issue-reporter');
+
+				//      // Store into config object URL
+				//      issueReporterWindowConfigUrl.update({
+				//          appRoot: this.environmentMainService.appRoot,
+				//          windowId: this.issueReporterWindow.id,
+				//          userEnv: this.userEnv,
+				//          data,
+				//          disableExtensions: !!this.environmentMainService.disableExtensions,
+				//          os: {
+				//              type: type(),
+				//              arch: arch(),
+				//              release: release(),
+				//          },
+				//          product
+				//      });
+
+				//      this.issueReporterWindow.loadURL(
+				//          FileAccess.asBrowserUri(`vs/code/electron-sandbox/issue/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
+				//      );
+
+				//      this.issueReporterWindow.on('close', () => {
+				//          this.issueReporterWindow = null;
+				//          issueReporterDisposables.dispose();
+				//      });
+
+				//      this.issueReporterParentWindow.on('closed', () => {
+				//          if (this.issueReporterWindow) {
+				//              this.issueReporterWindow.close();
+				//              this.issueReporterWindow = null;
+				//              issueReporterDisposables.dispose();
+				//          }
+				//      });
+				//  }
+				// }
+
+				// else if (this.issueReporterWindow) {
+				//  this.focusWindow(this.issueReporterWindow);
+				// }
+
+				// this.issueMainService.openReporter(issueReporterData);
 				// dom.windowOpenNoOpener(uri);
 				return;
 			}
 			throw new Error(`No issue reporting URL configured for ${this.productService.nameLong}.`);
-		}
-
-		// If we have a handler registered for this extension, use it instead of anything else
-		if (this._handlers.has(extensionId)) {
-			try {
-				const uri = await this.getIssueUriFromHandler(extensionId, CancellationToken.None);
-				dom.windowOpenNoOpener(uri);
-				return;
-			} catch (e) {
-				this.logService.error(e);
-			}
 		}
 
 		// if we don't have a handler, or the handler failed, try to get the extension's github url
@@ -110,25 +194,6 @@ export class WebIssueService implements IWorkbenchIssueService {
 
 		const uri = this.getIssueUriFromStaticContent(`${extensionGitHubUrl}/issues/new`, selectedExtension);
 		dom.windowOpenNoOpener(uri);
-	}
-
-	registerIssueUriRequestHandler(extensionId: string, handler: IIssueUriRequestHandler): IDisposable {
-		this._handlers.set(extensionId, handler);
-		return toDisposable(() => this._handlers.delete(extensionId));
-	}
-
-	registerIssueDataProvider(extensionId: string, handler: IIssueDataProvider): IDisposable {
-		this._providers.set(extensionId, handler);
-		return toDisposable(() => this._providers.delete(extensionId));
-	}
-
-	private async getIssueUriFromHandler(extensionId: string, token: CancellationToken): Promise<string> {
-		const handler = this._handlers.get(extensionId);
-		if (!handler) {
-			throw new Error(`No handler registered for extension ${extensionId}`);
-		}
-		const result = await handler.provideIssueUrl(token);
-		return result.toString(true);
 	}
 
 	private getExtensionGitHubUrl(extension: IExtensionDescription): string {

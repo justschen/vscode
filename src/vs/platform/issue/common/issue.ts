@@ -121,6 +121,16 @@ export interface IssueReporterWindowConfiguration extends ISandboxConfiguration 
 	};
 }
 
+export interface WebIssueReporterWindowConfiguration {
+	disableExtensions: boolean;
+	data: IssueReporterData;
+	os: {
+		type: string;
+		arch: string;
+		release: string;
+	};
+}
+
 export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguration {
 	data: ProcessExplorerData;
 }

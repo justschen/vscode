@@ -20,7 +20,7 @@ import { URI } from 'vs/base/common/uri';
 import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from 'vs/code/browser/issue/issueReporterModel';
 import { localize } from 'vs/nls';
 import { isRemoteDiagnosticError } from 'vs/platform/diagnostics/common/diagnostics';
-import { IIssueMainService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueReporterWindowConfiguration, IssueType } from 'vs/platform/issue/common/issue';
+import { IIssueMainService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueReporterWindowConfiguration, IssueType, WebIssueReporterWindowConfiguration } from 'vs/platform/issue/common/issue';
 import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
 import { INativeHostService } from 'vs/platform/native/common/native';
 import { getIconsStyleSheet } from 'vs/platform/theme/browser/iconsStyleSheet';
@@ -58,20 +58,25 @@ export class IssueReporter extends Disposable {
 	private readonly previewButton!: Button;
 
 	constructor(
-		private readonly configuration: IssueReporterWindowConfiguration,
+		private readonly configuration: IssueReporterWindowConfiguration | WebIssueReporterWindowConfiguration,
 		@INativeHostService private readonly nativeHostService: INativeHostService,
 		@IIssueMainService private readonly issueMainService: IIssueMainService
 	) {
 		super();
+
+		const product = 'product' in configuration ? configuration.product : undefined;
+		const os = 'os' in configuration ? configuration.os : undefined;
+		const disableExtensions = 'disableExtensions' in configuration ? configuration.disableExtensions : undefined;
+
 		const targetExtension = configuration.data.extensionId ? configuration.data.enabledExtensions.find(extension => extension.id.toLocaleLowerCase() === configuration.data.extensionId?.toLocaleLowerCase()) : undefined;
 		this.issueReporterModel = new IssueReporterModel({
 			...configuration.data,
 			issueType: configuration.data.issueType || IssueType.Bug,
 			versionInfo: {
-				vscodeVersion: `${configuration.product.nameShort} ${!!configuration.product.darwinUniversalAssetId ? `${configuration.product.version} (Universal)` : configuration.product.version} (${configuration.product.commit || 'Commit unknown'}, ${configuration.product.date || 'Date unknown'})`,
-				os: `${this.configuration.os.type} ${this.configuration.os.arch} ${this.configuration.os.release}${isLinuxSnap ? ' snap' : ''}`
+				vscodeVersion: `${product?.nameShort} ${!!product?.darwinUniversalAssetId ? `${product?.version} (Universal)` : product?.version} (${product?.commit || 'Commit unknown'}, ${product?.date || 'Date unknown'})`,
+				os: `${os?.type} ${os?.arch} ${os?.release}${isLinuxSnap ? ' snap' : ''}`
 			},
-			extensionsDisabled: !!configuration.disableExtensions,
+			extensionsDisabled: !!disableExtensions,
 			fileOnExtension: configuration.data.extensionId ? !targetExtension?.isBuiltin : undefined,
 			selectedExtension: targetExtension
 		});
@@ -253,10 +258,11 @@ export class IssueReporter extends Disposable {
 		const numberOfThemeExtesions = themes && themes.length;
 		this.issueReporterModel.update({ numberOfThemeExtesions, enabledNonThemeExtesions: nonThemes, allExtensions: installedExtensions });
 		this.updateExtensionTable(nonThemes, numberOfThemeExtesions);
-		if (this.configuration.disableExtensions || installedExtensions.length === 0) {
-			(<HTMLButtonElement>this.getElementById('disableExtensions')).disabled = true;
+		if ('disableExtensions' in this.configuration) {
+			if (this.configuration.disableExtensions || installedExtensions.length === 0) {
+				(<HTMLButtonElement>this.getElementById('disableExtensions')).disabled = true;
+			}
 		}
-
 		this.updateExtensionSelector(installedExtensions);
 	}
 
@@ -621,9 +627,11 @@ export class IssueReporter extends Disposable {
 
 	private searchMarketplaceIssues(title: string): void {
 		if (title) {
-			const gitHubInfo = this.parseGitHubUrl(this.configuration.product.reportMarketplaceIssueUrl!);
-			if (gitHubInfo) {
-				return this.searchGitHub(`${gitHubInfo.owner}/${gitHubInfo.repositoryName}`, title);
+			if ('product' in this.configuration) {
+				const gitHubInfo = this.parseGitHubUrl(this.configuration.product.reportMarketplaceIssueUrl!);
+				if (gitHubInfo) {
+					return this.searchGitHub(`${gitHubInfo.owner}/${gitHubInfo.repositoryName}`, title);
+				}
 			}
 		}
 	}
@@ -796,8 +804,10 @@ export class IssueReporter extends Disposable {
 		sourceSelect.append(this.makeOption('', localize('selectSource', "Select source"), true));
 		sourceSelect.append(this.makeOption('vscode', localize('vscode', "Visual Studio Code"), false));
 		sourceSelect.append(this.makeOption('extension', localize('extension', "An extension"), false));
-		if (this.configuration.product.reportMarketplaceIssueUrl) {
-			sourceSelect.append(this.makeOption('marketplace', localize('marketplace', "Extensions marketplace"), false));
+		if ('product' in this.configuration) {
+			if (this.configuration.product.reportMarketplaceIssueUrl) {
+				sourceSelect.append(this.makeOption('marketplace', localize('marketplace', "Extensions marketplace"), false));
+			}
 		}
 
 		if (issueType !== IssueType.FeatureRequest) {
@@ -1066,11 +1076,12 @@ export class IssueReporter extends Disposable {
 	}
 
 	private getIssueUrl(): string {
+		const product = 'product' in this.configuration ? this.configuration.product : undefined;
 		return this.issueReporterModel.fileOnExtension()
 			? this.getExtensionGitHubUrl()
 			: this.issueReporterModel.getData().fileOnMarketplace
-				? this.configuration.product.reportMarketplaceIssueUrl!
-				: this.configuration.product.reportIssueUrl!;
+				? product?.reportMarketplaceIssueUrl!
+				: product?.reportIssueUrl!;
 	}
 
 	private parseGitHubUrl(url: string): undefined | { repositoryName: string; owner: string } {
@@ -1491,9 +1502,11 @@ export class IssueReporter extends Disposable {
 	private updateExtensionTable(extensions: IssueReporterExtensionData[], numThemeExtensions: number): void {
 		const target = mainWindow.document.querySelector<HTMLElement>('.block-extensions .block-info');
 		if (target) {
-			if (this.configuration.disableExtensions) {
-				reset(target, localize('disabledExtensions', "Extensions are disabled"));
-				return;
+			if ('disableExtensions' in this.configuration) {
+				if (this.configuration.disableExtensions) {
+					reset(target, localize('disabledExtensions', "Extensions are disabled"));
+					return;
+				}
 			}
 
 			const themeExclusionStr = numThemeExtensions ? `\n(${numThemeExtensions} theme extensions excluded)` : '';
