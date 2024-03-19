@@ -125,7 +125,7 @@ export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguratio
 	data: ProcessExplorerData;
 }
 
-export const IIssueMainService = createDecorator<IIssueMainService>('issueService');
+export const IIssueMainService = createDecorator<IIssueMainService>('issueMainService');
 
 export interface IIssueMainService {
 	readonly _serviceBrand: undefined;

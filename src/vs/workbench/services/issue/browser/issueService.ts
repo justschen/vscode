@@ -3,17 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getZoomLevel } from 'vs/base/browser/browser';
 import * as dom from 'vs/base/browser/dom';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { IDisposable, toDisposable } from 'vs/base/common/lifecycle';
 import { userAgent } from 'vs/base/common/platform';
 import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
-import { IssueReporterData } from 'vs/platform/issue/common/issue';
+import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
+import { IIssueMainService, IssueReporterData, IssueReporterStyles } from 'vs/platform/issue/common/issue';
 import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
 import { ILogService } from 'vs/platform/log/common/log';
 import { IProductService } from 'vs/platform/product/common/productService';
+import { IColorTheme, IThemeService } from 'vs/platform/theme/common/themeService';
 import { IExtensionService } from 'vs/workbench/services/extensions/common/extensions';
 import { IIssueDataProvider, IIssueUriRequestHandler, IWorkbenchIssueService } from 'vs/workbench/services/issue/common/issue';
+import { mainWindow } from 'vs/base/browser/window';
+import { IWorkbenchAssignmentService } from 'vs/workbench/services/assignment/common/assignmentService';
+import { IWorkspaceTrustManagementService } from 'vs/platform/workspace/common/workspaceTrust';
+import { IAuthenticationService } from 'vs/workbench/services/authentication/common/authentication';
+import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
+import { foreground, textLinkForeground, textLinkActiveForeground, inputBackground, inputForeground, inputBorder, inputActiveOptionBorder, inputValidationErrorBorder, inputValidationErrorBackground, inputValidationErrorForeground, buttonBackground, buttonForeground, buttonHoverBackground, scrollbarSliderActiveBackground, scrollbarSliderBackground, scrollbarSliderHoverBackground } from 'vs/platform/theme/common/colorRegistry';
+import { SIDE_BAR_BACKGROUND } from 'vs/workbench/common/theme';
 
 export class WebIssueService implements IWorkbenchIssueService {
 	declare readonly _serviceBrand: undefined;
@@ -24,7 +34,13 @@ export class WebIssueService implements IWorkbenchIssueService {
 	constructor(
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IProductService private readonly productService: IProductService,
-		@ILogService private readonly logService: ILogService
+		@ILogService private readonly logService: ILogService,
+		@IIssueMainService private readonly issueMainService: IIssueMainService,
+		@IThemeService private readonly themeService: IThemeService,
+		@IWorkbenchAssignmentService private readonly experimentService: IWorkbenchAssignmentService,
+		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
+		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
+		@IIntegrityService private readonly integrityService: IIntegrityService,
 	) { }
 
 	//TODO @TylerLeonhardt @Tyriar to implement a process explorer for the web
@@ -38,7 +54,37 @@ export class WebIssueService implements IWorkbenchIssueService {
 		if (!extensionId) {
 			if (this.productService.reportIssueUrl) {
 				const uri = this.getIssueUriFromStaticContent(this.productService.reportIssueUrl);
-				dom.windowOpenNoOpener(uri);
+				const theme = this.themeService.getColorTheme();
+				const experiments = await this.experimentService.getCurrentExperiments();
+
+				let githubAccessToken = '';
+				try {
+					const githubSessions = await this.authenticationService.getSessions('github');
+					const potentialSessions = githubSessions.filter(session => session.scopes.includes('repo'));
+					githubAccessToken = potentialSessions[0]?.accessToken;
+				} catch (e) {
+					// Ignore
+				}
+
+				// air on the side of caution and have false be the default
+				let isUnsupported = false;
+				try {
+					isUnsupported = !(await this.integrityService.isPure()).isPure;
+				} catch (e) {
+					// Ignore
+				}
+
+				const issueReporterData: IssueReporterData = Object.assign({
+					styles: getIssueReporterStyles(theme),
+					zoomLevel: getZoomLevel(mainWindow),
+					enabledExtensions: {},
+					experiments: experiments?.join('\n'),
+					restrictedMode: !this.workspaceTrustManagementService.isWorkspaceTrusted(),
+					isUnsupported,
+					githubAccessToken
+				}, options);
+				this.issueMainService.openReporter(issueReporterData);
+				// dom.windowOpenNoOpener(uri);
 				return;
 			}
 			throw new Error(`No issue reporting URL configured for ${this.productService.nameLong}.`);
@@ -118,3 +164,32 @@ ${extension?.version ? `\nExtension version: ${extension.version}` : ''}
 		return `${baseUri}?body=${encodeURIComponent(issueDescription)}&labels=web`;
 	}
 }
+
+export function getIssueReporterStyles(theme: IColorTheme): IssueReporterStyles {
+	return {
+		backgroundColor: getColor(theme, SIDE_BAR_BACKGROUND),
+		color: getColor(theme, foreground),
+		textLinkColor: getColor(theme, textLinkForeground),
+		textLinkActiveForeground: getColor(theme, textLinkActiveForeground),
+		inputBackground: getColor(theme, inputBackground),
+		inputForeground: getColor(theme, inputForeground),
+		inputBorder: getColor(theme, inputBorder),
+		inputActiveBorder: getColor(theme, inputActiveOptionBorder),
+		inputErrorBorder: getColor(theme, inputValidationErrorBorder),
+		inputErrorBackground: getColor(theme, inputValidationErrorBackground),
+		inputErrorForeground: getColor(theme, inputValidationErrorForeground),
+		buttonBackground: getColor(theme, buttonBackground),
+		buttonForeground: getColor(theme, buttonForeground),
+		buttonHoverBackground: getColor(theme, buttonHoverBackground),
+		sliderActiveColor: getColor(theme, scrollbarSliderActiveBackground),
+		sliderBackgroundColor: getColor(theme, scrollbarSliderBackground),
+		sliderHoverColor: getColor(theme, scrollbarSliderHoverBackground),
+	};
+}
+
+function getColor(theme: IColorTheme, key: string): string | undefined {
+	const color = theme.getColor(key);
+	return color ? color.toString() : undefined;
+}
+
+registerSingleton(IWorkbenchIssueService, WebIssueService, InstantiationType.Delayed);
