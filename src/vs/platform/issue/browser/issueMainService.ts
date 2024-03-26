@@ -15,6 +15,17 @@ import { INativeHostMainService } from 'vs/platform/native/electron-main/nativeH
 import { IProductService } from 'vs/platform/product/common/productService';
 import { BrowserAuxiliaryWindowService, AuxiliaryWindow, IAuxiliaryWindowService } from 'vs/workbench/services/auxiliaryWindow/browser/auxiliaryWindowService';
 import BaseHtml from 'vs/code/electron-sandbox/issue/issueReporterPage';
+import { getZoomLevel } from 'vs/base/browser/browser';
+import { mainWindow } from 'vs/base/browser/window';
+import { getIssueReporterStyles } from 'vs/workbench/services/issue/browser/issueService';
+import { IThemeService } from 'vs/platform/theme/common/themeService';
+import { IWorkbenchAssignmentService } from 'vs/workbench/services/assignment/common/assignmentService';
+import { IWorkspaceTrustManagementService } from 'vs/platform/workspace/common/workspaceTrust';
+import { IAuthenticationService } from 'vs/workbench/services/authentication/common/authentication';
+import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
+import { IssueReporter } from 'vs/code/browser/issue/issueReporterService';
+import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+
 
 
 const processExplorerWindowState = 'issue.processExplorerWindowState';
@@ -47,17 +58,53 @@ export class IssueMainService implements IIssueMainService {
 		@INativeHostMainService private readonly nativeHostMainService: INativeHostMainService,
 		@IProductService private readonly productService: IProductService,
 		@IAuxiliaryWindowService private readonly auxWindowService: IAuxiliaryWindowService,
-		readonly browserAuxiliaryWindowService: BrowserAuxiliaryWindowService
+		readonly browserAuxiliaryWindowService: BrowserAuxiliaryWindowService,
+		@IThemeService private readonly themeService: IThemeService,
+		@IWorkbenchAssignmentService private readonly experimentService: IWorkbenchAssignmentService,
+		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
+		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
+		@IIntegrityService private readonly integrityService: IIntegrityService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		this.issueReporterWindow?.onDidLayout(() => {
 		});
 	}
 
 	async openReporter(data: IssueReporterData): Promise<void> {
+		const theme = this.themeService.getColorTheme();
+		const experiments = await this.experimentService.getCurrentExperiments();
+
+		let githubAccessToken = '';
+		try {
+			const githubSessions = await this.authenticationService.getSessions('github');
+			const potentialSessions = githubSessions.filter(session => session.scopes.includes('repo'));
+			githubAccessToken = potentialSessions[0]?.accessToken;
+		} catch (e) {
+			// Ignore
+		}
+
+		// air on the side of caution and have false be the default
+		let isUnsupported = false;
+		try {
+			isUnsupported = !(await this.integrityService.isPure()).isPure;
+		} catch (e) {
+			// Ignore
+		}
+
+		const issueReporterData: IssueReporterData = Object.assign({
+			styles: getIssueReporterStyles(theme),
+			zoomLevel: getZoomLevel(mainWindow),
+			enabledExtensions: {},
+			experiments: experiments?.join('\n'),
+			restrictedMode: !this.workspaceTrustManagementService.isWorkspaceTrusted(),
+			isUnsupported,
+			githubAccessToken
+		}, data);
+
 		const disposables = new DisposableStore();
 
 		// Auxiliary Window
-		const auxiliaryWindow = disposables.add(await this.browserAuxiliaryWindowService.open());
+		const auxiliaryWindow = disposables.add(await this.auxWindowService.open());
 
 		// Editor Part
 		const editorPartContainer = document.createElement('div');
@@ -66,56 +113,19 @@ export class IssueMainService implements IIssueMainService {
 		editorPartContainer.style.position = 'relative';
 		safeInnerHtml(editorPartContainer, BaseHtml());
 		auxiliaryWindow.container.appendChild(editorPartContainer);
-		console.log(data);
-		// if (!this.issueReporterWindow) {
-		//  this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
-		//  if (this.issueReporterParentWindow) {
-		//      const issueReporterDisposables = new DisposableStore();
 
-		//      const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
-		//      const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
+		const configuration = {
+			disableExtensions: false,
+			data: issueReporterData,
+			os: {
+				type: '',
+				arch: '',
+				release: '',
+			},
+		};
 
-		//      this.issueReporterWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
-		//          backgroundColor: data.styles.backgroundColor,
-		//          title: localize('issueReporter', "Issue Reporter"),
-		//          zoomLevel: data.zoomLevel,
-		//          alwaysOnTop: false
-		//      }, 'issue-reporter');
-
-		//      // Store into config object URL
-		//      issueReporterWindowConfigUrl.update({
-		//          appRoot: this.environmentMainService.appRoot,
-		//          windowId: this.issueReporterWindow.id,
-		//          userEnv: this.userEnv,
-		//          data,
-		//          disableExtensions: !!this.environmentMainService.disableExtensions,
-		//          os: {
-		//              type: type(),
-		//              arch: arch(),
-		//              release: release(),
-		//          },
-		//          product
-		//      });
-
-		//      this.issueReporterWindow.loadURL(
-		//          FileAccess.asBrowserUri(`vs/code/electron-sandbox/issue/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
-		//      );
-
-		//      this.issueReporterWindow.on('close', () => {
-		//          this.issueReporterWindow = null;
-		//          issueReporterDisposables.dispose();
-		//      });
-
-		//      this.issueReporterParentWindow.on('closed', () => {
-		//          if (this.issueReporterWindow) {
-		//              this.issueReporterWindow.close();
-		//              this.issueReporterWindow = null;
-		//              issueReporterDisposables.dispose();
-		//          }
-		//      });
-		//  }
-		// }
-
+		const issueReporter = disposables.add(this.instantiationService.createInstance(IssueReporter, configuration));
+		issueReporter.render();
 		// else if (this.issueReporterWindow) {
 		//  this.focusWindow(this.issueReporterWindow);
 		// }

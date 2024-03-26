@@ -5,11 +5,11 @@
 
 import { getZoomLevel } from 'vs/base/browser/browser';
 import * as dom from 'vs/base/browser/dom';
-import { DisposableStore, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
-import { IProcessEnvironment, userAgent } from 'vs/base/common/platform';
+import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
+import { userAgent } from 'vs/base/common/platform';
 import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
-import { IIssueMainService, IssueReporterData, IssueReporterStyles } from 'vs/platform/issue/common/issue';
+import { IssueReporterData, IssueReporterStyles } from 'vs/platform/issue/common/issue';
 import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
 import { ILogService } from 'vs/platform/log/common/log';
 import { IProductService } from 'vs/platform/product/common/productService';
@@ -120,7 +120,9 @@ export class WebIssueService implements IWorkbenchIssueService {
 					},
 				};
 
-				// const issueReporter = this.instantiationService.createInstance(IssueReporter, configuration);
+				// this.issueMainService.openReporter(issueReporterData);
+
+				// const issueReporter = disposables.add(this.instantiationService.createInstance(IssueReporter, configuration));
 				// issueReporter.render();
 				// mainWindow.document.body.style.display = 'block';
 				// issueReporter.setInitialFocus();
