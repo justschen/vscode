@@ -328,6 +328,7 @@ export class BaseIssueReporterService extends Disposable {
 		this.addEventListener('description', 'input', (e: Event) => {
 			const issueDescription = (<HTMLInputElement>e.target).value;
 			this.issueReporterModel.update({ issueDescription });
+			this.issueMainService.$sendIssueData('', issueDescription);
 
 			// Only search for extension issues on title change
 			if (this.issueReporterModel.fileOnExtension() === false) {

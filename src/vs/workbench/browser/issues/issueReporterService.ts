@@ -94,6 +94,15 @@ export class IssueWebReporter extends BaseIssueReporterService {
 			}
 		});
 
+		this.addEventListener('issue-title', 'input', _ => {
+			const titleElement = this.getElementById('issue-title') as HTMLInputElement;
+			if (titleElement) {
+				const title = titleElement.value;
+				this.issueReporterModel.update({ issueTitle: title });
+				this.issueMainService.$sendIssueData(title, '');
+			}
+		});
+
 		this.window.document.onkeydown = async (e: KeyboardEvent) => {
 			const cmdOrCtrlKey = isMacintosh ? e.metaKey : e.ctrlKey;
 			// Cmd/Ctrl+Enter previews issue and closes window

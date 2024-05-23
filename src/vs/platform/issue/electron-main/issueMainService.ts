@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BrowserWindow, BrowserWindowConstructorOptions, contentTracing, Display, IpcMainEvent, screen } from 'electron';
+import { BrowserWindow, BrowserWindowConstructorOptions, contentTracing, Display, ipcMain, IpcMainEvent, screen } from 'electron';
 import { arch, release, type } from 'os';
 import { raceTimeout } from 'vs/base/common/async';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
@@ -13,6 +13,7 @@ import { FileAccess } from 'vs/base/common/network';
 import { IProcessEnvironment, isMacintosh } from 'vs/base/common/platform';
 import { listProcesses } from 'vs/base/node/ps';
 import { validatedIpcMain } from 'vs/base/parts/ipc/electron-main/ipcMain';
+import { data } from 'vs/base/test/common/filters.perf.data';
 import { localize } from 'vs/nls';
 import { IDiagnosticsService, isRemoteDiagnosticError, PerformanceInfo, SystemInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { IDiagnosticsMainService } from 'vs/platform/diagnostics/electron-main/diagnosticsMainService';
@@ -135,14 +136,69 @@ export class IssueMainService implements IIssueMainService {
 
 			this.safeSend(event, 'vscode:pidToNameResponse', pidToNames);
 		});
+
+		ipcMain.on('vscode:issueData', (event, data) => {
+			// Handle the received data here
+
+		});
 	}
 
 	//#endregion
 
 	//#region Used by renderer
 
-	async openReporter(data: IssueReporterData): Promise<void> {
+	async openReporter(data: IssueReporterData, edited: boolean): Promise<void> {
 		if (!this.issueReporterWindow) {
+			this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
+			if (this.issueReporterParentWindow) {
+				const issueReporterDisposables = new DisposableStore();
+
+				const issueReporterWindowConfigUrl = issueReporterDisposables.add(this.protocolMainService.createIPCObjectUrl<IssueReporterWindowConfiguration>());
+				const position = this.getWindowPosition(this.issueReporterParentWindow, 700, 800);
+
+				this.issueReporterWindow = this.createBrowserWindow(position, issueReporterWindowConfigUrl, {
+					backgroundColor: data.styles.backgroundColor,
+					title: localize('issueReporter', "Issue Reporter"),
+					zoomLevel: data.zoomLevel,
+					alwaysOnTop: false
+				}, 'issue-reporter');
+
+				// Store into config object URL
+				issueReporterWindowConfigUrl.update({
+					appRoot: this.environmentMainService.appRoot,
+					windowId: this.issueReporterWindow.id,
+					userEnv: this.userEnv,
+					data,
+					disableExtensions: !!this.environmentMainService.disableExtensions,
+					os: {
+						type: type(),
+						arch: arch(),
+						release: release(),
+					},
+					product
+				});
+
+				this.issueReporterWindow.loadURL(
+					FileAccess.asBrowserUri(`vs/workbench/electron-sandbox/issues/issueReporter${this.environmentMainService.isBuilt ? '' : '-dev'}.html`).toString(true)
+				);
+
+				this.issueReporterWindow.on('close', () => {
+					this.issueReporterWindow = null;
+					issueReporterDisposables.dispose();
+				});
+
+				this.issueReporterParentWindow.on('closed', () => {
+					if (this.issueReporterWindow) {
+						this.issueReporterWindow.close();
+						this.issueReporterWindow = null;
+						issueReporterDisposables.dispose();
+					}
+				});
+			}
+		}
+
+		else if (this.issueReporterWindow && edited) {
+			this.issueReporterWindow.close();
 			this.issueReporterParentWindow = BrowserWindow.getFocusedWindow();
 			if (this.issueReporterParentWindow) {
 				const issueReporterDisposables = new DisposableStore();
@@ -286,6 +342,14 @@ export class IssueMainService implements IIssueMainService {
 
 		// Show item in explorer
 		this.nativeHostMainService.showItemInFolder(undefined, path);
+	}
+
+
+	async $sendIssueData(body: string, title: string): Promise<void> {
+		if (this.issueReporterWindow) {
+			this.issueReporterWindow.webContents.send('vscode:issueData', data);
+		}
+
 	}
 
 	async getSystemStatus(): Promise<string> {

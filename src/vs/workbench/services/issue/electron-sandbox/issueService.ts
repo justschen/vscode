@@ -25,9 +25,16 @@ import { mainWindow } from 'vs/base/browser/window';
 import { IMenuService, MenuId } from 'vs/platform/actions/common/actions';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 
+export interface IssueReporterReturnData {
+	issueBody: string;
+	issueTitle: string;
+}
+
 export class NativeIssueService implements IWorkbenchIssueService {
 	declare readonly _serviceBrand: undefined;
 	private extensionIdentifierSet: ExtensionIdentifierSet = new ExtensionIdentifierSet();
+	private extensionData: IssueReporterReturnData | undefined;
+	private edited: boolean = false;
 
 	constructor(
 		@IIssueMainService private readonly issueMainService: IIssueMainService,
@@ -67,6 +74,15 @@ export class NativeIssueService implements IWorkbenchIssueService {
 				ipcRenderer.send(`vscode:triggerReporterMenuResponse:${extensionId}`, undefined);
 			}
 			menu.dispose();
+		});
+
+		mainWindow.addEventListener('message', async (event) => {
+			if (event.data && event.data.replyChannel === 'vscode:triggerIssueData') {
+				this.extensionData = {
+					issueBody: event.data.data.issueBody,
+					issueTitle: event.data.data.issueTitle
+				};
+			}
 		});
 	}
 
@@ -128,6 +144,20 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			// Ignore
 		}
 
+		if (this.extensionData?.issueBody) {
+			if (!dataOverrides.issueTitle) {
+				dataOverrides.issueTitle = this.extensionData.issueTitle;
+				this.edited = true;
+			}
+		}
+
+		if (this.extensionData?.issueTitle) {
+			if (!dataOverrides.issueBody) {
+				dataOverrides.issueBody = this.extensionData.issueBody;
+				this.edited = true;
+			}
+		}
+
 		const theme = this.themeService.getColorTheme();
 		const issueReporterData: IssueReporterData = Object.assign({
 			styles: getIssueReporterStyles(theme),
@@ -150,7 +180,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			ipcRenderer.send(`vscode:triggerReporterMenuResponse:${issueReporterData.extensionId}`, issueReporterData);
 			this.extensionIdentifierSet.delete(new ExtensionIdentifier(issueReporterData.extensionId));
 		}
-		return this.issueMainService.openReporter(issueReporterData);
+		return this.issueMainService.openReporter(issueReporterData, this.edited);
 	}
 
 	openProcessExplorer(): Promise<void> {

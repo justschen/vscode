@@ -17,13 +17,21 @@ import { IIssueMainService, IssueReporterData, ProcessExplorerData } from 'vs/pl
 import product from 'vs/platform/product/common/product';
 import { IssueWebReporter } from 'vs/workbench/browser/issues/issueReporterService';
 import { AuxiliaryWindowMode, IAuxiliaryWindowService } from 'vs/workbench/services/auxiliaryWindow/browser/auxiliaryWindowService';
+import { data } from 'vs/base/test/common/filters.perf.data';
+
+export interface IssueReporterReturnData {
+	issueBody: string;
+	issueTitle: string;
+}
 
 export class IssueMainService implements IIssueMainService {
 
 	readonly _serviceBrand: undefined;
+	private timeout: NodeJS.Timeout | undefined;
 
 	private issueReporterWindow: Window | null = null;
 	private extensionIdentifierSet: ExtensionIdentifierSet = new ExtensionIdentifierSet();
+	private extensionData: IssueReporterReturnData = { issueBody: '', issueTitle: '' };
 
 	constructor(
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -61,6 +69,16 @@ export class IssueMainService implements IIssueMainService {
 			}
 		});
 
+		mainWindow.addEventListener('message', async (event) => {
+			if (event.data && event.data.replyChannel === 'vscode:triggerIssueData') {
+				if (event.data.data.issueBody) {
+					this.extensionData.issueBody = event.data.data.issueBody;
+				}
+				if (event.data.data.issueTitle) {
+					this.extensionData.issueTitle = event.data.data.issueTitle;
+				}
+			}
+		});
 	}
 
 	async openReporter(data: IssueReporterData): Promise<void> {
@@ -71,10 +89,23 @@ export class IssueMainService implements IIssueMainService {
 		}
 
 		if (this.issueReporterWindow) {
-			this.issueReporterWindow.focus();
-			return;
+			if (this.extensionData && (this.extensionData.issueBody || this.extensionData.issueTitle)) {
+				this.issueReporterWindow.close();
+				this.issueReporterWindow = null;
+				data.issueBody = this.extensionData.issueBody ?? data.issueBody;
+				data.issueTitle = this.extensionData.issueTitle ?? data.issueTitle;
+				this.openAuxWindow(data);
+				return;
+			} else {
+				this.issueReporterWindow.focus();
+				return;
+			}
 		}
 
+		this.openAuxWindow(data);
+	}
+
+	async openAuxWindow(data: IssueReporterData): Promise<void> {
 		const disposables = new DisposableStore();
 
 		// Auxiliary Window
@@ -148,6 +179,19 @@ export class IssueMainService implements IIssueMainService {
 	}
 	$getReporterStatus(extensionId: string, extensionName: string): Promise<boolean[]> {
 		throw new Error('Method not implemented.');
+	}
+
+	async $sendIssueData(body: string, title: string): Promise<void> {
+		const replyChannel = 'vscode:triggerIssueData';
+		const debounceTime = 500;
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+		}
+
+		this.timeout = setTimeout(() => {
+			mainWindow.postMessage({ data: { issueBody: body, issueTitle: title }, replyChannel }, '*');
+		}, debounceTime);
 	}
 
 	async $sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined> {

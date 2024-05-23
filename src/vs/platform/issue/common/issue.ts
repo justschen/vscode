@@ -128,7 +128,7 @@ export const IIssueMainService = createDecorator<IIssueMainService>('issueServic
 export interface IIssueMainService {
 	readonly _serviceBrand: undefined;
 	stopTracing(): Promise<void>;
-	openReporter(data: IssueReporterData): Promise<void>;
+	openReporter(data: IssueReporterData, edited?: boolean): Promise<void>;
 	openProcessExplorer(data: ProcessExplorerData): Promise<void>;
 	getSystemStatus(): Promise<string>;
 
@@ -141,4 +141,5 @@ export interface IIssueMainService {
 	$showClipboardDialog(): Promise<boolean>;
 	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined>;
 	$closeReporter(): Promise<void>;
+	$sendIssueData(body: string, title: string): Promise<void>;
 }

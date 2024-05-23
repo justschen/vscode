@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { mainWindow } from 'vs/base/browser/window';
 import { isRemoteDiagnosticError, SystemInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { ISettingSearchResult, IssueReporterExtensionData, IssueType } from 'vs/platform/issue/common/issue';
 
@@ -10,6 +11,7 @@ export interface IssueReporterData {
 	issueType: IssueType;
 	issueDescription?: string;
 	extensionData?: string;
+	issueTitle?: string;
 
 	versionInfo?: any;
 	systemInfo?: SystemInfo;
@@ -42,6 +44,7 @@ export interface IssueReporterData {
 
 export class IssueReporterModel {
 	private readonly _data: IssueReporterData;
+	private timeout: NodeJS.Timeout | undefined;
 
 	constructor(initialData?: Partial<IssueReporterData>) {
 		const defaultData = {
@@ -64,6 +67,16 @@ export class IssueReporterModel {
 
 	update(newData: Partial<IssueReporterData>): void {
 		Object.assign(this._data, newData);
+		// const replyChannel = 'vscode:triggerIssueData';
+		// const debounceTime = 500;
+
+		// if (this.timeout) {
+		// 	clearTimeout(this.timeout);
+		// }
+
+		// this.timeout = setTimeout(() => {
+		// 	mainWindow.postMessage({ data: { issueBody: this.getData().issueDescription, issueTitle: this.getData().issueTitle }, replyChannel }, '*');
+		// }, debounceTime);
 	}
 
 	serialize(): string {
