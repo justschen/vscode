@@ -24,8 +24,12 @@ import { IDisposable } from 'vs/base/common/lifecycle';
 import { IQuickAccessRegistry, Extensions as QuickAccessExtensions } from 'vs/platform/quickinput/common/quickAccess';
 import { IssueQuickAccess } from 'vs/workbench/contrib/issue/browser/issueQuickAccess';
 import 'vs/workbench/contrib/issue/electron-sandbox/issueMainService';
-import 'vs/workbench/contrib/issue/electron-sandbox/issueService';
+// import 'vs/workbench/contrib/issue/electron-sandbox/issueFormService';
+// import 'vs/workbench/contrib/issue/electron-sandbox/issueService';
 import 'vs/workbench/contrib/issue/browser/issueTroubleshoot';
+import { registerSingleton, InstantiationType } from 'vs/platform/instantiation/common/extensions';
+import { IssueMainService } from 'vs/workbench/contrib/issue/electron-sandbox/issueFormService';
+import { NativeIssueService } from 'vs/workbench/contrib/issue/electron-sandbox/issueService';
 
 
 //#region Issue Contribution
@@ -72,6 +76,8 @@ class NativeIssueContribution extends BaseIssueContribution {
 	}
 }
 Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkbenchContribution(NativeIssueContribution, LifecyclePhase.Restored);
+registerSingleton(IWorkbenchIssueService, NativeIssueService, InstantiationType.Delayed);
+registerSingleton(IIssueMainService, IssueMainService, InstantiationType.Delayed);
 
 class ReportPerformanceIssueUsingReporterAction extends Action2 {
 
