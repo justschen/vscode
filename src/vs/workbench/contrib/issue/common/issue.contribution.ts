@@ -8,12 +8,16 @@ import { ICommandAction } from 'vs/platform/action/common/action';
 import { Categories } from 'vs/platform/action/common/actionCommonCategories';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry, ICommandMetadata } from 'vs/platform/commands/common/commands';
-import { IssueReporterData } from 'vs/platform/issue/common/issue';
+import { IIssueMainService, IssueReporterData } from 'vs/platform/issue/common/issue';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
 import { IWorkbenchIssueService } from 'vs/workbench/contrib/issue/common/issue';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { Disposable } from 'vs/base/common/lifecycle';
+import { registerSingleton, InstantiationType } from 'vs/platform/instantiation/common/extensions';
+import { BrowserIssueService } from 'vs/workbench/contrib/issue/browser/issueService';
+import { NativeIssueService } from 'vs/workbench/contrib/issue/electron-sandbox/issueService';
+import { IssueFormService } from 'vs/workbench/contrib/issue/browser/issueFormService';
 
 const OpenIssueReporterActionId = 'workbench.action.openIssueReporter';
 const OpenIssueReporterApiId = 'vscode.openIssueReporter';
@@ -118,3 +122,6 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
 		}));
 	}
 }
+
+registerSingleton(IWorkbenchIssueService, NativeIssueService, InstantiationType.Delayed);
+registerSingleton(IIssueMainService, IssueFormService, InstantiationType.Delayed);

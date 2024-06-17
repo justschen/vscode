@@ -17,6 +17,7 @@ import { IIssueMainService, IssueReporterData, ProcessExplorerData } from 'vs/pl
 import product from 'vs/platform/product/common/product';
 import { IssueWebReporter } from 'vs/workbench/contrib/issue/browser/issueReporterService';
 import { AuxiliaryWindowMode, IAuxiliaryWindowService } from 'vs/workbench/services/auxiliaryWindow/browser/auxiliaryWindowService';
+import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
 
 export interface IssuePassData {
 	issueTitle: string;
