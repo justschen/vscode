@@ -5,7 +5,7 @@
 
 import { localize, localize2 } from 'vs/nls';
 import { MenuRegistry, MenuId, registerAction2, Action2 } from 'vs/platform/actions/common/actions';
-import { IWorkbenchIssueService } from 'vs/workbench/contrib/issue/common/issue';
+import { IWorkbenchIssueService, IWorkbenchIssueService2 } from 'vs/workbench/contrib/issue/common/issue';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { BaseIssueContribution } from 'vs/workbench/contrib/issue/common/issue.contribution';
 import { IProductService } from 'vs/platform/product/common/productService';
@@ -24,8 +24,11 @@ import { IDisposable } from 'vs/base/common/lifecycle';
 import { IQuickAccessRegistry, Extensions as QuickAccessExtensions } from 'vs/platform/quickinput/common/quickAccess';
 import { IssueQuickAccess } from 'vs/workbench/contrib/issue/browser/issueQuickAccess';
 import 'vs/workbench/contrib/issue/electron-sandbox/issueMainService';
-import 'vs/workbench/contrib/issue/electron-sandbox/issueService';
 import 'vs/workbench/contrib/issue/browser/issueTroubleshoot';
+import { IssueFormService } from 'vs/workbench/contrib/issue/electron-sandbox/issueFormService';
+import { InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
+import { NativeIssueService } from 'vs/workbench/contrib/issue/electron-sandbox/issueService';
+import { NativeIssueService2 } from 'vs/workbench/contrib/issue/electron-sandbox/issueService2';
 
 
 //#region Issue Contribution
@@ -95,6 +98,10 @@ class ReportPerformanceIssueUsingReporterAction extends Action2 {
 
 //#endregion
 
+registerSingleton(IWorkbenchIssueService, NativeIssueService, InstantiationType.Delayed);
+registerSingleton(IWorkbenchIssueService2, NativeIssueService2, InstantiationType.Delayed);
+registerSingleton(IIssueMainService, IssueFormService, InstantiationType.Delayed);
+
 //#region Commands
 
 class OpenProcessExplorer extends Action2 {
@@ -111,7 +118,7 @@ class OpenProcessExplorer extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
-		const issueService = accessor.get(IWorkbenchIssueService);
+		const issueService = accessor.get(IWorkbenchIssueService2);
 
 		return issueService.openProcessExplorer();
 	}

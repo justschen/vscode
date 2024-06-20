@@ -125,10 +125,33 @@ export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguratio
 
 export const IIssueMainService = createDecorator<IIssueMainService>('issueService');
 
+
+// for issue reporter
 export interface IIssueMainService {
 	readonly _serviceBrand: undefined;
-	stopTracing(): Promise<void>;
+	stopTracing(): Promise<void>; // remove here
+	openProcessExplorer(data: ProcessExplorerData): Promise<void>; // remove here
+	getSystemStatus(): Promise<string>; // remove here
+
+	// Used by the issue reporter
 	openReporter(data: IssueReporterData): Promise<void>;
+	$getSystemInfo(): Promise<SystemInfo>; // needs main process stuff
+	$getPerformanceInfo(): Promise<PerformanceInfo>; // here too
+	$reloadWithExtensionsDisabled(): Promise<void>;
+	$showConfirmCloseDialog(): Promise<void>;
+	$showClipboardDialog(): Promise<boolean>;
+	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined>;
+	$closeReporter(): Promise<void>;
+}
+
+// for process
+
+export const IIssueMainService2 = createDecorator<IIssueMainService2>('issueService2');
+
+export interface IIssueMainService2 {
+	readonly _serviceBrand: undefined;
+	stopTracing(): Promise<void>;
+	openReporter(data: IssueReporterData): Promise<void>; // TODO remove
 	openProcessExplorer(data: ProcessExplorerData): Promise<void>;
 	getSystemStatus(): Promise<string>;
 
@@ -139,6 +162,41 @@ export interface IIssueMainService {
 	$reloadWithExtensionsDisabled(): Promise<void>;
 	$showConfirmCloseDialog(): Promise<void>;
 	$showClipboardDialog(): Promise<boolean>;
-	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined>;
-	$closeReporter(): Promise<void>;
+	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined>; // remove
+	$closeReporter(): Promise<void>; // TODO remove
+}
+
+export const IProcessMainService = createDecorator<IProcessMainService>('processService');
+
+export interface IProcessMainService {
+	readonly _serviceBrand: undefined;
+	stopTracing(): Promise<void>;
+	openReporter(data: IssueReporterData): Promise<void>; // TODO remove
+	openProcessExplorer(data: ProcessExplorerData): Promise<void>;
+	getSystemStatus(): Promise<string>;
+
+	// Used by the issue reporter
+
+	$getSystemInfo(): Promise<SystemInfo>;
+	$getPerformanceInfo(): Promise<PerformanceInfo>;
+	$reloadWithExtensionsDisabled(): Promise<void>;
+	$showConfirmCloseDialog(): Promise<void>;
+	$showClipboardDialog(): Promise<boolean>;
+	$sendReporterMenu(extensionId: string, extensionName: string): Promise<IssueReporterData | undefined>; // remove
+	$closeReporter(): Promise<void>; // TODO remove
+}
+
+
+
+// To be renamed to original IIssueMainService
+export const INewIssueMainService = createDecorator<INewIssueMainService>('processService');
+
+export interface INewIssueMainService {
+	readonly _serviceBrand: undefined;
+	stopTracing(): Promise<void>;
+	getSystemStatus(): Promise<string>;
+
+	// Used by the issue reporter
+	$getSystemInfo(): Promise<SystemInfo>;
+	$getPerformanceInfo(): Promise<PerformanceInfo>;
 }

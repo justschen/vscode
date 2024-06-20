@@ -18,8 +18,8 @@ import { registerMainProcessRemoteService } from 'vs/platform/ipc/electron-sandb
 import { IIssueMainService, IssueReporterWindowConfiguration } from 'vs/platform/issue/common/issue';
 import { INativeHostService } from 'vs/platform/native/common/native';
 import { NativeHostService } from 'vs/platform/native/common/nativeHostService';
-import { IssueReporter2 } from 'vs/workbench/contrib/issue/electron-sandbox/issueReporterService2';
 import { mainWindow } from 'vs/base/browser/window';
+import { IssueReporter } from 'vs/workbench/contrib/issue/electron-sandbox/issueReporterService';
 
 export function startup(configuration: IssueReporterWindowConfiguration) {
 	const platformClass = isWindows ? 'windows' : isLinux ? 'linux' : 'mac';
@@ -29,7 +29,7 @@ export function startup(configuration: IssueReporterWindowConfiguration) {
 
 	const instantiationService = initServices(configuration.windowId);
 
-	const issueReporter = instantiationService.createInstance(IssueReporter2, configuration);
+	const issueReporter = instantiationService.createInstance(IssueReporter, configuration);
 	issueReporter.render();
 	mainWindow.document.body.style.display = 'block';
 	issueReporter.setInitialFocus();

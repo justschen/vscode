@@ -141,7 +141,14 @@ export class BrowserIssueService implements IWorkbenchIssueService {
 				githubAccessToken
 			}, options);
 
-			return this.issueMainService.openReporter(issueReporterData);
+
+			// call all the issue reporter service stuff here to open.
+
+
+
+
+
+			// return this.issueFormService.openReporter(issueReporterData);
 		}
 		throw new Error(`No issue reporting URL configured for ${this.productService.nameLong}.`);
 

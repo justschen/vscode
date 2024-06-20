@@ -52,7 +52,7 @@ import { DiskFileSystemProvider } from 'vs/platform/files/node/diskFileSystemPro
 import { SyncDescriptor } from 'vs/platform/instantiation/common/descriptors';
 import { IInstantiationService, ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
-import { IIssueMainService } from 'vs/platform/issue/common/issue';
+import { IIssueMainService2 } from 'vs/platform/issue/common/issue';
 import { IssueMainService } from 'vs/platform/issue/electron-main/issueMainService';
 import { IKeyboardLayoutMainService, KeyboardLayoutMainService } from 'vs/platform/keyboardLayout/electron-main/keyboardLayoutMainService';
 import { ILaunchMainService, LaunchMainService } from 'vs/platform/launch/electron-main/launchMainService';
@@ -1049,7 +1049,7 @@ export class CodeApplication extends Disposable {
 		services.set(IDiagnosticsService, ProxyChannel.toService(getDelayedChannel(sharedProcessReady.then(client => client.getChannel('diagnostics')))));
 
 		// Issues
-		services.set(IIssueMainService, new SyncDescriptor(IssueMainService, [this.userEnv]));
+		services.set(IIssueMainService2, new SyncDescriptor(IssueMainService, [this.userEnv]));
 
 		// Encryption
 		services.set(IEncryptionMainService, new SyncDescriptor(EncryptionMainService));
@@ -1180,7 +1180,7 @@ export class CodeApplication extends Disposable {
 		mainProcessElectronServer.registerChannel('update', updateChannel);
 
 		// Issues
-		const issueChannel = ProxyChannel.fromService(accessor.get(IIssueMainService), disposables);
+		const issueChannel = ProxyChannel.fromService(accessor.get(IIssueMainService2), disposables);
 		mainProcessElectronServer.registerChannel('issue', issueChannel);
 
 		// Encryption

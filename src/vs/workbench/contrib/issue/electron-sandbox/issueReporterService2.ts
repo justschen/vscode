@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { $, isHTMLInputElement, isHTMLTextAreaElement, reset, windowOpenNoOpener } from 'vs/base/browser/dom';
-import { mainWindow } from 'vs/base/browser/window';
+// import { this.window } from 'vs/base/browser/window';
 import { Codicon } from 'vs/base/common/codicons';
 import { groupBy } from 'vs/base/common/collections';
 import { CancellationError } from 'vs/base/common/errors';
@@ -26,10 +26,11 @@ const MAX_URL_LENGTH = 7500;
 export class IssueReporter2 extends BaseIssueReporterService {
 	constructor(
 		private readonly configuration: IssueReporterWindowConfiguration,
+		window: Window,
 		@INativeHostService private readonly nativeHostService: INativeHostService,
 		@IIssueMainService issueMainService: IIssueMainService
 	) {
-		super(configuration.disableExtensions, configuration.data, configuration.os, configuration.product, mainWindow, false, issueMainService);
+		super(configuration.disableExtensions, configuration.data, configuration.os, configuration.product, window, false, issueMainService);
 
 		this.issueMainService.$getSystemInfo().then(info => {
 			this.issueReporterModel.update({ systemInfo: info });
@@ -45,7 +46,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 		}
 
 		this.setEventHandlers();
-		applyZoom(configuration.data.zoomLevel, mainWindow);
+		applyZoom(configuration.data.zoomLevel, this.window);
 		this.handleExtensionData(configuration.data.enabledExtensions);
 		this.updateExperimentsInfo(configuration.data.experiments);
 		this.updateRestrictedMode(configuration.data.restrictedMode);
@@ -106,7 +107,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 
 
 		// THIS IS THE MAIN IMPORTANT PART
-		mainWindow.document.onkeydown = async (e: KeyboardEvent) => {
+		this.window.document.onkeydown = async (e: KeyboardEvent) => {
 			const cmdOrCtrlKey = isMacintosh ? e.metaKey : e.ctrlKey;
 			// Cmd/Ctrl+Enter previews issue and closes window
 			if (cmdOrCtrlKey && e.key === 'Enter') {
@@ -134,12 +135,12 @@ export class IssueReporter2 extends BaseIssueReporterService {
 
 			// Cmd/Ctrl + zooms in
 			if (cmdOrCtrlKey && (e.key === '+' || e.key === '=')) {
-				zoomIn(mainWindow);
+				zoomIn(this.window);
 			}
 
 			// Cmd/Ctrl - zooms out
 			if (cmdOrCtrlKey && e.key === '-') {
-				zoomOut(mainWindow);
+				zoomOut(this.window);
 			}
 
 			// With latest electron upgrade, cmd+a is no longer propagating correctly for inputs in this window on mac
@@ -195,7 +196,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 		if (!this.validateInputs()) {
 			// If inputs are invalid, set focus to the first one and add listeners on them
 			// to detect further changes
-			const invalidInput = mainWindow.document.getElementsByClassName('invalid-input');
+			const invalidInput = this.window.document.getElementsByClassName('invalid-input');
 			if (invalidInput.length) {
 				(<HTMLInputElement>invalidInput[0]).focus();
 			}
@@ -270,7 +271,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 	}
 
 	private updateSystemInfo(state: IssueReporterModelData) {
-		const target = mainWindow.document.querySelector<HTMLElement>('.block-system .block-info');
+		const target = this.window.document.querySelector<HTMLElement>('.block-system .block-info');
 
 		if (target) {
 			const systemInfo = state.systemInfo!;
@@ -411,7 +412,6 @@ export class IssueReporter2 extends BaseIssueReporterService {
 						if (openReporterData) {
 							if (this.selectedExtension === selectedExtensionId) {
 								this.removeLoading(iconElement, true);
-								this.configuration.data = openReporterData;
 								this.data = openReporterData;
 							} else if (this.selectedExtension !== selectedExtensionId) {
 							}
@@ -421,10 +421,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 								iconElement.classList.remove(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
 							}
 							this.removeLoading(iconElement);
-							// if not using command, should have no configuration data in fields we care about and check later.
 							this.clearExtensionData();
-
-							// case when previous extension was opened from normal openIssueReporter command
 							selectedExtension.data = undefined;
 							selectedExtension.uri = undefined;
 						}
@@ -441,6 +438,52 @@ export class IssueReporter2 extends BaseIssueReporterService {
 						this.updateExtensionStatus(matches[0]);
 					}
 				}
+				// this.clearExtensionData();
+				// const selectedExtensionId = (<HTMLInputElement>e.target).value;
+				// this.selectedExtension = selectedExtensionId;
+				// const extensions = this.issueReporterModel.getData().allExtensions;
+				// const matches = extensions.filter(extension => extension.id === selectedExtensionId);
+				// if (matches.length) {
+				// 	this.issueReporterModel.update({ selectedExtension: matches[0] });
+				// 	const selectedExtension = this.issueReporterModel.getData().selectedExtension;
+				// 	if (selectedExtension) {
+				// 		const iconElement = document.createElement('span');
+				// 		iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+				// 		this.setLoading(iconElement);
+				// 		const openReporterData = await this.sendReporterMenu(selectedExtension);
+				// 		if (openReporterData) {
+				// 			if (this.selectedExtension === selectedExtensionId) {
+				// 				this.removeLoading(iconElement, true);
+				// 				this.configuration.data = openReporterData;
+				// 				this.data = openReporterData;
+				// 			} else if (this.selectedExtension !== selectedExtensionId) {
+				// 			}
+				// 		}
+				// 		else {
+				// 			if (!this.loadingExtensionData) {
+				// 				iconElement.classList.remove(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');
+				// 			}
+				// 			this.removeLoading(iconElement);
+				// 			// if not using command, should have no configuration data in fields we care about and check later.
+				// 			this.clearExtensionData();
+
+				// 			// case when previous extension was opened from normal openIssueReporter command
+				// 			selectedExtension.data = undefined;
+				// 			selectedExtension.uri = undefined;
+				// 		}
+				// 		if (this.selectedExtension === selectedExtensionId) {
+				// 			// repopulates the fields with the new data given the selected extension.
+				// 			this.updateExtensionStatus(matches[0]);
+				// 			this.openReporter = false;
+				// 		}
+				// 	} else {
+				// 		this.issueReporterModel.update({ selectedExtension: undefined });
+				// 		this.clearSearchResults();
+				// 		this.clearExtensionData();
+				// 		this.validateSelectedExtension();
+				// 		this.updateExtensionStatus(matches[0]);
+				// 	}
+				// }
 			});
 		}
 
@@ -449,46 +492,46 @@ export class IssueReporter2 extends BaseIssueReporterService {
 		});
 	}
 
-	public override setLoading(element: HTMLElement) {
-		// Show loading
-		this.openReporter = true;
-		this.loadingExtensionData = true;
-		this.updatePreviewButtonState();
+	// public override setLoading(element: HTMLElement) {
+	// 	// Show loading
+	// 	this.openReporter = true;
+	// 	this.loadingExtensionData = true;
+	// 	this.updatePreviewButtonState();
 
-		const extensionDataCaption = this.getElementById('extension-id')!;
-		hide(extensionDataCaption);
+	// 	const extensionDataCaption = this.getElementById('extension-id')!;
+	// 	hide(extensionDataCaption);
 
-		const extensionDataCaption2 = Array.from(mainWindow.document.querySelectorAll('.ext-parens'));
-		extensionDataCaption2.forEach(extensionDataCaption2 => hide(extensionDataCaption2));
+	// 	const extensionDataCaption2 = Array.from(this.window.document.querySelectorAll('.ext-parens'));
+	// 	extensionDataCaption2.forEach(extensionDataCaption2 => hide(extensionDataCaption2));
 
-		const showLoading = this.getElementById('ext-loading')!;
-		show(showLoading);
-		while (showLoading.firstChild) {
-			showLoading.firstChild.remove();
-		}
-		showLoading.append(element);
+	// 	const showLoading = this.getElementById('ext-loading')!;
+	// 	show(showLoading);
+	// 	while (showLoading.firstChild) {
+	// 		showLoading.firstChild.remove();
+	// 	}
+	// 	showLoading.append(element);
 
-		this.renderBlocks();
-	}
+	// 	this.renderBlocks();
+	// }
 
-	public override removeLoading(element: HTMLElement, fromReporter: boolean = false) {
-		this.openReporter = fromReporter;
-		this.loadingExtensionData = false;
-		this.updatePreviewButtonState();
+	// public override removeLoading(element: HTMLElement, fromReporter: boolean = false) {
+	// 	this.openReporter = fromReporter;
+	// 	this.loadingExtensionData = false;
+	// 	this.updatePreviewButtonState();
 
-		const extensionDataCaption = this.getElementById('extension-id')!;
-		show(extensionDataCaption);
+	// 	const extensionDataCaption = this.getElementById('extension-id')!;
+	// 	show(extensionDataCaption);
 
-		const extensionDataCaption2 = Array.from(mainWindow.document.querySelectorAll('.ext-parens'));
-		extensionDataCaption2.forEach(extensionDataCaption2 => show(extensionDataCaption2));
+	// 	const extensionDataCaption2 = Array.from(this.window.document.querySelectorAll('.ext-parens'));
+	// 	extensionDataCaption2.forEach(extensionDataCaption2 => show(extensionDataCaption2));
 
-		const hideLoading = this.getElementById('ext-loading')!;
-		hide(hideLoading);
-		if (hideLoading.firstChild) {
-			element.remove();
-		}
-		this.renderBlocks();
-	}
+	// 	const hideLoading = this.getElementById('ext-loading')!;
+	// 	hide(hideLoading);
+	// 	if (hideLoading.firstChild) {
+	// 		element.remove();
+	// 	}
+	// 	this.renderBlocks();
+	// }
 
 	private updateRestrictedMode(restrictedMode: boolean) {
 		this.issueReporterModel.update({ restrictedMode });
@@ -500,7 +543,7 @@ export class IssueReporter2 extends BaseIssueReporterService {
 
 	private updateExperimentsInfo(experimentInfo: string | undefined) {
 		this.issueReporterModel.update({ experimentInfo });
-		const target = mainWindow.document.querySelector<HTMLElement>('.block-experiments .block-info');
+		const target = this.window.document.querySelector<HTMLElement>('.block-experiments .block-info');
 		if (target) {
 			target.textContent = experimentInfo ? experimentInfo : localize('noCurrentExperiments', "No current experiments.");
 		}

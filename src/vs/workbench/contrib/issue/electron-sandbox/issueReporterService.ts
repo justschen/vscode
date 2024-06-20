@@ -20,7 +20,7 @@ import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from 
 import { localize } from 'vs/nls';
 import { isRemoteDiagnosticError } from 'vs/platform/diagnostics/common/diagnostics';
 import { IIssueMainService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueReporterWindowConfiguration, IssueType } from 'vs/platform/issue/common/issue';
-import { normalizeGitHubUrl } from 'vs/platform/issue/common/issueReporterUtil';
+import { normalizeGitHubUrl } from 'vs/workbench/contrib/issue/common/issueReporterUtils';
 import { INativeHostService } from 'vs/platform/native/common/native';
 import { getIconsStyleSheet } from 'vs/platform/theme/browser/iconsStyleSheet';
 import { applyZoom, zoomIn, zoomOut } from 'vs/platform/window/electron-sandbox/window';
