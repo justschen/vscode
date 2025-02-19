@@ -11,15 +11,17 @@ import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
-import { ILabelService } from '../../../../../platform/label/common/label.js';
+import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IUndoRedoService } from '../../../../../platform/undoRedo/common/undoRedo.js';
 import { SaveReason } from '../../../../common/editor.js';
-import { IResolvedTextFileEditorModel, ITextFileService } from '../../../../services/textfile/common/textfiles.js';
+import { IFilesConfigurationService } from '../../../../services/filesConfiguration/common/filesConfigurationService.js';
+import { IResolvedTextFileEditorModel } from '../../../../services/textfile/common/textfiles.js';
 import { ChatEditKind } from '../../common/chatEditingService.js';
 import { IChatService } from '../../common/chatService.js';
-import { ChatEditingModifiedFileEntry, IModifiedEntryTelemetryInfo } from './chatEditingModifiedFileEntry.js';
+import { IModifiedEntryTelemetryInfo } from './chatEditingModifiedFileEntry.js';
+import { ChatEditingModifiedDocumentEntry } from './chatEditingModifiedDocumentEntry.js';
 
-export class ChatEditingModifiedNotebookEntry extends ChatEditingModifiedFileEntry {
+export class ChatEditingModifiedNotebookEntry extends ChatEditingModifiedDocumentEntry {
 	private readonly resolveTextFileEditorModel: IResolvedTextFileEditorModel;
 
 	constructor(
@@ -36,10 +38,10 @@ export class ChatEditingModifiedNotebookEntry extends ChatEditingModifiedFileEnt
 		@IUndoRedoService _undoRedoService: IUndoRedoService,
 		@IFileService _fileService: IFileService,
 		@IConfigurationService configService: IConfigurationService,
-		@ITextFileService textFileService: ITextFileService,
-		@ILabelService labelService: ILabelService
+		@IFilesConfigurationService fileConfigService: IFilesConfigurationService,
+		@IInstantiationService instaService: IInstantiationService
 	) {
-		super(resourceRef, _multiDiffEntryDelegate, _telemetryInfo, kind, initialContent, modelService, textModelService, languageService, configService, _chatService, _editorWorkerService, _undoRedoService, _fileService, textFileService, labelService);
+		super(resourceRef, _multiDiffEntryDelegate, _telemetryInfo, kind, initialContent, modelService, textModelService, languageService, configService, fileConfigService, _chatService, _editorWorkerService, _undoRedoService, _fileService, instaService);
 		this.resolveTextFileEditorModel = resourceRef.object as IResolvedTextFileEditorModel;
 	}
 
