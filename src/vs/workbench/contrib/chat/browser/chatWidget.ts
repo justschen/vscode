@@ -286,6 +286,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	private readonly historyViewStore = this._register(new DisposableStore());
 	private readonly chatTodoListWidget: ChatTodoListWidget;
 	private historyList: WorkbenchList<IChatHistoryListItem> | undefined;
+	private welcomeHistoryContainer!: HTMLElement;
 
 	private bodyDimension: dom.Dimension | undefined;
 	private visibleChangeCount = 0;
@@ -916,6 +917,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}
 
 		const numItems = this.viewModel?.getItems().length ?? 0;
+		const showHistory = this.configurationService.getValue<boolean>(ChatConfiguration.EmptyStateHistoryEnabled);
 		if (!numItems) {
 			const expEmptyState = this.configurationService.getValue<boolean>('chat.emptyChatState.enabled');
 
@@ -948,8 +950,6 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				this.historyViewStore.clear();
 				dom.clearNode(this.welcomeMessageContainer);
 
-				// Optional: recent chat history above welcome content when enabled
-				const showHistory = this.configurationService.getValue<boolean>(ChatConfiguration.EmptyStateHistoryEnabled);
 				if (showHistory) {
 					this.renderWelcomeHistorySection();
 				}
@@ -963,6 +963,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 					}
 				);
 				dom.append(this.welcomeMessageContainer, this.welcomePart.value.element);
+			} else if (showHistory && this.historyList) {
+				this.updateHistoryList();
 			}
 		}
 
@@ -987,18 +989,6 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			const headerTitle = dom.append(header, $('.chat-welcome-history-header-title'));
 			headerTitle.textContent = localize('chat.history.title', 'Chat History');
 			const headerActions = dom.append(header, $('.chat-welcome-history-header-actions'));
-
-			const items = await this.chatService.getHistory();
-			const filtered = items
-				.filter(i => !i.isActive)
-				.sort((a, b) => (b.lastMessageDate ?? 0) - (a.lastMessageDate ?? 0))
-				.slice(0, 3);
-
-			// If no items to show, hide the entire chat history section
-			if (filtered.length === 0) {
-				historyRoot.remove();
-				return;
-			}
 
 			const showAllButton = dom.append(headerActions, $('.chat-welcome-history-show-all'));
 			showAllButton.classList.add('codicon', `codicon-${Codicon.history.id}`, 'chat-welcome-history-show-all');
@@ -1028,71 +1018,107 @@ export class ChatWidget extends Disposable implements IChatWidget {
 					}, 0);
 				}
 			}));
-			const welcomeHistoryContainer = dom.append(container, $('.chat-welcome-history-list'));
+			this.welcomeHistoryContainer = dom.append(container, $('.chat-welcome-history-list'));
 
-			this.welcomeMessageContainer.classList.toggle('has-chat-history', filtered.length > 0);
-
-			// Compute today's midnight once for label decisions
-			const todayMidnight = new Date();
-			todayMidnight.setHours(0, 0, 0, 0);
-			const todayMidnightMs = todayMidnight.getTime();
-
-			// Create WorkbenchList for chat history items (limit to top 3)
-			const historyItems: IChatHistoryListItem[] = filtered.slice(0, 3).map(item => ({
-				sessionId: item.sessionId,
-				title: item.title,
-				lastMessageDate: typeof item.lastMessageDate === 'number' ? item.lastMessageDate : Date.now(),
-				isActive: item.isActive
-			}));
-
-			const listHeight = historyItems.length * 22;
-			welcomeHistoryContainer.style.height = `${listHeight}px`;
-			welcomeHistoryContainer.style.minHeight = `${listHeight}px`;
-			welcomeHistoryContainer.style.overflow = 'hidden';
-
-			if (!this.historyList) {
-				const delegate = new ChatHistoryListDelegate();
-				const renderer = new ChatHistoryListRenderer(
-					async (item) => await this.openHistorySession(item.sessionId),
-					this.hoverService,
-					(timestamp, todayMs) => this.formatHistoryTimestamp(timestamp, todayMs),
-					todayMidnightMs
-				);
-				const list = this.instantiationService.createInstance(
-					WorkbenchList<IChatHistoryListItem>,
-					'ChatHistoryList',
-					welcomeHistoryContainer,
-					delegate,
-					[renderer],
-					{
-						horizontalScrolling: false,
-						keyboardSupport: true,
-						mouseSupport: true,
-						multipleSelectionSupport: false,
-						overrideStyles: {
-							listBackground: this.styles.listBackground
-						},
-						accessibilityProvider: {
-							getAriaLabel: (item: IChatHistoryListItem) => item.title,
-							getWidgetAriaLabel: () => localize('chat.history.list', 'Chat History')
-						}
-					}
-				);
-				this.historyList = this._register(list);
-			} else {
-				const currentHistoryList = this.historyList.getHTMLElement();
-				if (currentHistoryList && currentHistoryList.parentElement !== welcomeHistoryContainer) {
-					welcomeHistoryContainer.appendChild(currentHistoryList);
-				}
+			const historyItems = await this.fetchTopHistoryItems();
+			if (historyItems.length === 0) {
+				historyRoot.remove();
+				return;
 			}
 
-			this.historyList.splice(0, 0, historyItems);
-			this.historyList.layout(undefined, listHeight);
-
-			// Deprecated text link replaced by icon button in header
+			this.createHistoryList();
+			this.layoutHistory(historyItems);
 		} catch (err) {
 			this.logService.error('Failed to render welcome history', err);
 		}
+	}
+
+	private async updateHistoryList(): Promise<void> {
+		try {
+			if (!this.historyList) {
+				return;
+			}
+			const historyItems = await this.fetchTopHistoryItems();
+			this.layoutHistory(historyItems);
+		} catch (err) {
+			this.logService.error('Failed to update welcome history', err);
+		}
+	}
+
+	private async fetchTopHistoryItems(limit: number = 3): Promise<IChatHistoryListItem[]> {
+		const items = await this.chatService.getHistory();
+		const filtered = items
+			.filter(i => !i.isActive)
+			.sort((a, b) => (b.lastMessageDate ?? 0) - (a.lastMessageDate ?? 0))
+			.slice(0, limit);
+
+		return filtered.map(item => ({
+			sessionId: item.sessionId,
+			title: item.title,
+			lastMessageDate: typeof item.lastMessageDate === 'number' ? item.lastMessageDate : Date.now(),
+			isActive: item.isActive
+		}));
+	}
+
+	private createHistoryList(): void {
+		if (!this.welcomeHistoryContainer) {
+			return;
+		}
+
+		const todayMidnight = new Date();
+		todayMidnight.setHours(0, 0, 0, 0);
+		const todayMidnightMs = todayMidnight.getTime();
+
+		if (!this.historyList) {
+			const delegate = new ChatHistoryListDelegate();
+			const renderer = new ChatHistoryListRenderer(
+				async (item) => await this.openHistorySession(item.sessionId),
+				this.hoverService,
+				(timestamp, todayMs) => this.formatHistoryTimestamp(timestamp, todayMs),
+				todayMidnightMs
+			);
+			const list = this.instantiationService.createInstance(
+				WorkbenchList<IChatHistoryListItem>,
+				'ChatHistoryList',
+				this.welcomeHistoryContainer,
+				delegate,
+				[renderer],
+				{
+					horizontalScrolling: false,
+					keyboardSupport: true,
+					mouseSupport: true,
+					multipleSelectionSupport: false,
+					overrideStyles: {
+						listBackground: this.styles.listBackground
+					},
+					accessibilityProvider: {
+						getAriaLabel: (item: IChatHistoryListItem) => item.title,
+						getWidgetAriaLabel: () => localize('chat.history.list', 'Chat History')
+					}
+				}
+			);
+			this.historyList = this._register(list);
+		} else {
+			const currentHistoryList = this.historyList.getHTMLElement();
+			if (currentHistoryList && currentHistoryList.parentElement !== this.welcomeHistoryContainer) {
+				this.welcomeHistoryContainer.appendChild(currentHistoryList);
+			}
+		}
+	}
+
+	private layoutHistory(historyItems: IChatHistoryListItem[]): void {
+		if (!this.historyList || !this.welcomeHistoryContainer) {
+			return;
+		}
+		const listHeight = historyItems.length * 22; // row height
+		this.welcomeHistoryContainer.style.height = `${listHeight}px`;
+		this.welcomeHistoryContainer.style.minHeight = `${listHeight}px`;
+		this.welcomeHistoryContainer.style.overflow = 'hidden';
+
+		this.welcomeMessageContainer.classList.toggle('has-chat-history', historyItems.length > 0);
+
+		this.historyList.splice(0, this.historyList.length, historyItems);
+		this.historyList.layout(undefined, listHeight);
 	}
 
 	private formatHistoryTimestamp(last: number, todayMidnightMs: number): string {
