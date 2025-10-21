@@ -154,6 +154,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 	private readonly focusedFileTreesByResponseId = new Map<string, number>();
 
 	private readonly templateDataByRequestId = new Map<string, IChatListItemTemplate>();
+	private readonly templateDataByResponseId = new Map<string, IChatListItemTemplate>();
 
 	private readonly chatContentMarkdownRenderer: IMarkdownRenderer;
 	private readonly markdownDecorationsRenderer: ChatMarkdownDecorationsRenderer;
@@ -325,6 +326,20 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		}
 		if (templateData) {
 			this.templateDataByRequestId.delete(requestId);
+		}
+		return undefined;
+	}
+
+	getTemplateDataForResponseId(responseId?: string): IChatListItemTemplate | undefined {
+		if (!responseId) {
+			return undefined;
+		}
+		const templateData = this.templateDataByResponseId.get(responseId);
+		if (templateData && templateData.currentElement?.id === responseId) {
+			return templateData;
+		}
+		if (templateData) {
+			this.templateDataByResponseId.delete(responseId);
 		}
 		return undefined;
 	}
@@ -534,14 +549,26 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 			this.traceLayout('renderChatTreeItem', `Rendering a different element into the template, index=${index}`);
 			this.clearRenderedParts(templateData);
 
-			const mappedTemplateData = this.templateDataByRequestId.get(templateData.currentElement.id);
-			if (mappedTemplateData && (mappedTemplateData.currentElement?.id !== templateData.currentElement.id)) {
-				this.templateDataByRequestId.delete(templateData.currentElement.id);
+			const previous = templateData.currentElement;
+			if (isRequestVM(previous)) {
+				const mappedTemplateData = this.templateDataByRequestId.get(previous.id);
+				if (mappedTemplateData === templateData) {
+					this.templateDataByRequestId.delete(previous.id);
+				}
+			} else if (isResponseVM(previous)) {
+				const mappedTemplateData = this.templateDataByResponseId.get(previous.id);
+				if (mappedTemplateData === templateData) {
+					this.templateDataByResponseId.delete(previous.id);
+				}
 			}
 		}
 
 		templateData.currentElement = element;
-		this.templateDataByRequestId.set(element.id, templateData);
+		if (isRequestVM(element)) {
+			this.templateDataByRequestId.set(element.id, templateData);
+		} else if (isResponseVM(element)) {
+			this.templateDataByResponseId.set(element.id, templateData);
+		}
 		const kind = isRequestVM(element) ? 'request' :
 			isResponseVM(element) ? 'response' :
 				'welcome';
@@ -1601,7 +1628,18 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		templateData.elementDisposables.clear();
 
 		if (templateData.currentElement && !this.viewModel?.editing) {
-			this.templateDataByRequestId.delete(templateData.currentElement.id);
+			const current = templateData.currentElement;
+			if (isRequestVM(current)) {
+				const mapped = this.templateDataByRequestId.get(current.id);
+				if (mapped === templateData) {
+					this.templateDataByRequestId.delete(current.id);
+				}
+			} else if (isResponseVM(current)) {
+				const mapped = this.templateDataByResponseId.get(current.id);
+				if (mapped === templateData) {
+					this.templateDataByResponseId.delete(current.id);
+				}
+			}
 		}
 
 		if (isRequestVM(node.element) && node.element.id === this.viewModel?.editing?.id && details?.onScroll) {

@@ -88,6 +88,7 @@ import { ChatSuggestNextWidget } from './chatContentParts/chatSuggestNextWidget.
 import { ChatTodoListWidget } from './chatContentParts/chatTodoListWidget.js';
 import { ChatInputPart, IChatInputPartOptions, IChatInputStyles } from './chatInputPart.js';
 import { ChatListDelegate, ChatListItemRenderer, IChatListItemTemplate, IChatRendererDelegate } from './chatListRenderer.js';
+import { ChatStickyScroll, IChatStickyRequestSnapshot } from './chatStickyScroll.js';
 import { ChatEditorOptions } from './chatOptions.js';
 import { ChatViewPane } from './chatViewPane.js';
 import './media/chat.css';
@@ -305,8 +306,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 	private tree!: WorkbenchObjectTree<ChatTreeItem, FuzzyScore>;
 	private renderer!: ChatListItemRenderer;
+	private _stickyScroll?: ChatStickyScroll; // sticky preview of latest message
 	private readonly _codeBlockModelCollection: CodeBlockModelCollection;
 	private lastItem: ChatTreeItem | undefined;
+	private defaultListItemHeight: number = 200;
 
 	private readonly inputPartDisposable: MutableDisposable<ChatInputPart> = this._register(new MutableDisposable());
 	private readonly inlineInputPartDisposable: MutableDisposable<ChatInputPart> = this._register(new MutableDisposable());
@@ -1051,11 +1054,16 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				}
 			});
 
+			// Update sticky preview visibility after list changes
+			this._stickyScroll?.updateSticky();
+
 			if (!skipDynamicLayout && this._dynamicMessageLayoutData) {
 				this.layoutDynamicChatTreeItemMode();
 			}
 
 			this.renderFollowups();
+			// Ensure suggest-next widget considers latest item state (e.g., response completion)
+			this._chatSuggestNextScheduler.schedule();
 		}
 	}
 
@@ -1904,6 +1912,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				}
 			}
 		}));
+
+		// Initialize sticky scroll for latest request (prompt) using view-model-driven snapshots
+		this._stickyScroll = this._register(new ChatStickyScroll(
+			listContainer,
+			() => this.tree.scrollTop,
+			() => this.tree.renderHeight,
+			() => this.getStickyRequestSnapshot()
+		));
 		this._register(this.tree.onContextMenu(e => this.onContextMenu(e)));
 
 		this._register(this.tree.onDidChangeContentHeight(() => {
@@ -1912,6 +1928,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this._register(this.renderer.onDidChangeItemHeight(e => {
 			if (this.tree.hasElement(e.element)) {
 				this.tree.updateElementHeight(e.element, e.height);
+			}
+			// If the changed element is the last item, update sticky state
+			if (e.element.id === this.lastItem?.id) {
+				this._stickyScroll?.updateSticky();
 			}
 		}));
 		this._register(this.tree.onDidFocus(() => {
@@ -1922,7 +1942,88 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			const isScrolledDown = this.tree.scrollTop >= this.tree.scrollHeight - this.tree.renderHeight - 2;
 			this.container.classList.toggle('show-scroll-down', !isScrolledDown && !this.scrollLock);
+			this._stickyScroll?.updateSticky();
 		}));
+	}
+
+	private getStickyRequestSnapshot(): IChatStickyRequestSnapshot | undefined {
+		if (!this.viewModel || !this.renderer) {
+			return undefined;
+		}
+
+		const items = this.viewModel.getItems();
+		if (!items.length) {
+			return undefined;
+		}
+
+		const scrollTop = this.tree.scrollTop;
+		const viewportBottom = scrollTop + this.tree.renderHeight;
+		let cumulativeTop = 0;
+		let response: IChatResponseViewModel | undefined;
+		let responseIndex = -1;
+
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			const height = this.getItemHeightForSticky(item);
+			const itemBottom = cumulativeTop + height;
+			const intersectsViewport = itemBottom > scrollTop && cumulativeTop < viewportBottom;
+
+			if (intersectsViewport && isResponseVM(item)) {
+				response = item;
+				responseIndex = i;
+				break;
+			}
+
+			cumulativeTop = itemBottom;
+		}
+
+		if (!response) {
+			return undefined;
+		}
+
+		const requestId = response.requestId;
+		if (!requestId) {
+			return undefined;
+		}
+
+		let matchingRequest: IChatRequestViewModel | undefined;
+		for (let i = responseIndex; i >= 0; i--) {
+			const item = items[i];
+			if (isRequestVM(item) && item.id === requestId) {
+				matchingRequest = item;
+				break;
+			}
+		}
+		if (!matchingRequest) {
+			return undefined;
+		}
+
+		let top = 0;
+		for (const item of items) {
+			if (item === matchingRequest) {
+				break;
+			}
+			top += this.getItemHeightForSticky(item);
+		}
+
+		const height = this.getItemHeightForSticky(matchingRequest);
+		const requestTemplate = this.renderer.getTemplateDataForRequestId(matchingRequest.id);
+		const sourceRow = requestTemplate?.rowContainer;
+
+		return {
+			id: matchingRequest.id,
+			top,
+			height,
+			sourceRow
+		};
+	}
+
+	private getItemHeightForSticky(item: ChatTreeItem): number {
+		const measured = (item as { currentRenderedHeight?: number }).currentRenderedHeight;
+		if (typeof measured === 'number' && measured > 0) {
+			return measured;
+		}
+		return this.defaultListItemHeight;
 	}
 
 	startEditing(requestId: string): void {

@@ -1,0 +1,39 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.chat-sticky-last-message {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	background-color: var(--vscode-sideBar-background);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	overflow: hidden;
+	padding: 8px 12px;
+	/* max-height: var(--chat-sticky-height, 120px); */
+	opacity: 0;
+	transform: translateY(-4px);
+	transition: opacity .15s ease, transform .15s ease;
+	z-index: 5;
+	/* above list rows but below notifications */
+}
+
+.chat-sticky-last-message.visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* Hide footers and checkpoint UI inside the preview */
+.chat-sticky-last-message .chat-footer-toolbar,
+.chat-sticky-last-message .checkpoint-container,
+.chat-sticky-last-message .checkpoint-restore-container {
+	display: none !important;
+}
+
+/* Prevent interactions inside preview editors */
+.chat-sticky-last-message .monaco-editor {
+	pointer-events: none;
+}
