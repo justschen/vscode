@@ -1568,6 +1568,23 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		const collapsedToolsMode = this.configService.getValue<CollapsedToolsDisplayMode>('chat.agent.thinking.collapsedTools');
 		if (isResponseVM(context.element) && collapsedToolsMode !== CollapsedToolsDisplayMode.Off) {
 
+
+			// for most tool calls atm, we don't care about the generic streaming message
+			const appendToThinkingPart = (thinkingPart: ChatThinkingContentPart, domNode: HTMLElement) => {
+				if (toolInvocation.kind === 'toolInvocation' && IChatToolInvocation.isStreaming(toolInvocation)) {
+					const disposable = autorun(r => {
+						if (!IChatToolInvocation.isStreaming(toolInvocation, r)) {
+							thinkingPart.appendItem(domNode, toolInvocation.toolId, toolInvocation, templateData.value);
+							disposable.dispose();
+						}
+					});
+					thinkingPart.addDisposable(disposable);
+				} else {
+					thinkingPart.appendItem(domNode, toolInvocation.toolId, toolInvocation, templateData.value);
+				}
+				thinkingPart.addDisposable(part);
+			};
+
 			// create thinking part if it doesn't exist yet
 			const lastThinking = this.getLastThinkingPart(templateData.renderedParts);
 			if (!lastThinking && part?.domNode && toolInvocation.presentation !== 'hidden' && this.shouldPinPart(toolInvocation, context.element) && collapsedToolsMode === CollapsedToolsDisplayMode.Always) {
@@ -1576,8 +1593,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				}, context, templateData);
 
 				if (thinkingPart instanceof ChatThinkingContentPart) {
-					thinkingPart.appendItem(part?.domNode, toolInvocation.toolId, toolInvocation, templateData.value);
-					thinkingPart.addDisposable(part);
+					appendToThinkingPart(thinkingPart, part.domNode);
 					thinkingPart.addDisposable(thinkingPart.onDidChangeHeight(() => {
 						this.updateItemHeight(templateData);
 					}));
@@ -1588,8 +1604,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 
 			if (this.shouldPinPart(toolInvocation, context.element)) {
 				if (lastThinking && part?.domNode && toolInvocation.presentation !== 'hidden') {
-					lastThinking.appendItem(part?.domNode, toolInvocation.toolId, toolInvocation, templateData.value);
-					lastThinking.addDisposable(part);
+					appendToThinkingPart(lastThinking, part.domNode);
 				}
 			} else {
 				this.finalizeCurrentThinkingPart(context, templateData);
