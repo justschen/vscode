@@ -152,6 +152,7 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 	private readonly toolDisposables = this._register(new DisposableMap<string, DisposableStore>());
 	private pendingRemovals: { toolCallId: string; toolLabel: string }[] = [];
 	private pendingScrollDisposable: IDisposable | undefined;
+	private mutationObserverDisposable: IDisposable | undefined;
 	private isUpdatingDimensions: boolean = false;
 
 	private getRandomWorkingMessage(): string {
@@ -319,7 +320,8 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 				subtree: true,
 				characterData: true
 			});
-			this._register({ dispose: () => mutationObserver.disconnect() });
+			this.mutationObserverDisposable = { dispose: () => mutationObserver.disconnect() };
+			this._register(this.mutationObserverDisposable);
 
 			this._register(this._onDidChangeHeight.event(() => {
 				this.syncDimensionsAndScheduleScroll();
@@ -370,6 +372,9 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 		}
 		this.pendingScrollDisposable = scheduleAtNextAnimationFrame(getWindow(this.domNode), () => {
 			this.pendingScrollDisposable = undefined;
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.isUpdatingDimensions = true;
 			try {
 				this.updateScrollDimensions();
@@ -608,6 +613,11 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 			this.wrapper.classList.remove('chat-thinking-streaming');
 		}
 		this.streamingCompleted = true;
+
+		if (this.mutationObserverDisposable) {
+			this.mutationObserverDisposable.dispose();
+			this.mutationObserverDisposable = undefined;
+		}
 
 		if (this.workingSpinnerElement) {
 			this.workingSpinnerElement.remove();
