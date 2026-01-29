@@ -106,7 +106,6 @@ export class InlineChatInputWidget extends Disposable {
 
 		const model = this._store.add(modelService.createModel('', null, URI.parse(`gutter-input:${Date.now()}`), true));
 		this._input.setModel(model);
-		this._input.layout({ width: 200, height: 18 });
 
 		// Initialize sticky scroll height observable
 		const stickyScrollController = StickyScrollController.get(this._editorObs.editor);
@@ -117,11 +116,10 @@ export class InlineChatInputWidget extends Disposable {
 			const selection = this._editorObs.cursorSelection.read(r);
 			const hasSelection = selection && !selection.isEmpty();
 			const placeholderText = hasSelection
-				? localize('placeholderWithSelection', "Edit selection")
+				? localize('placeholderWithSelection', "Modify selected code")
 				: localize('placeholderNoSelection', "Generate code");
-			this._input.updateOptions({
-				placeholder: this._keybindingService.appendKeybinding(placeholderText, ACTION_START)
-			});
+
+			this._input.updateOptions({ placeholder: this._keybindingService.appendKeybinding(placeholderText, ACTION_START) });
 		}));
 
 		// Listen to content size changes and resize the input editor (max 3 lines)
@@ -202,8 +200,7 @@ export class InlineChatInputWidget extends Disposable {
 
 		// Clear input state
 		this._input.getModel().setValue('');
-		this._inputContainer.style.height = '26px';
-		this._input.layout({ width: 200, height: 18 });
+		this._updateInputHeight(this._input.getContentHeight());
 
 		// Refresh actions from menu
 		this._refreshActions();
@@ -281,6 +278,11 @@ export class InlineChatInputWidget extends Disposable {
 	 * Hide the widget (removes from editor but does not dispose).
 	 */
 	private _hide(): void {
+		// Focus editor if focus is still within the editor's DOM
+		const editorDomNode = this._editorObs.editor.getDomNode();
+		if (editorDomNode && dom.isAncestorOfActiveElement(editorDomNode)) {
+			this._editorObs.editor.focus();
+		}
 		this._position.set(null, undefined);
 		this._showStore.clear();
 	}

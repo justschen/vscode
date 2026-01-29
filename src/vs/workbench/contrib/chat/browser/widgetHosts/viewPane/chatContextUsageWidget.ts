@@ -140,46 +140,31 @@ export class ChatContextUsageWidget extends Disposable {
 		const store = new DisposableStore();
 		this._hoverDisposable.value = store;
 
-		const getOrCreateDetails = (): ChatContextUsageDetails => {
-			if (!this._contextUsageDetails.value) {
-				this._contextUsageDetails.value = this.instantiationService.createInstance(ChatContextUsageDetails);
+		const createDetails = (): ChatContextUsageDetails | undefined => {
+			if (!this._isVisible.get() || !this.currentData) {
+				return undefined;
 			}
-			if (this.currentData) {
-				this._contextUsageDetails.value.update(this.currentData);
-			}
+			this._contextUsageDetails.value = this.instantiationService.createInstance(ChatContextUsageDetails);
+			this._contextUsageDetails.value.update(this.currentData);
 			return this._contextUsageDetails.value;
 		};
 
-		const resolveHoverOptions = (): IDelayedHoverOptions => {
-			const details = getOrCreateDetails();
-			return {
-				content: details.domNode,
-				appearance: { showPointer: true, compact: true },
-				persistence: { hideOnHover: false },
-				trapFocus: true
-			};
+		const hoverOptions: Omit<IDelayedHoverOptions, 'content'> = {
+			appearance: { showPointer: true, compact: true },
+			persistence: { hideOnHover: false },
+			trapFocus: true
 		};
 
-		store.add(this.hoverService.setupDelayedHover(
-			this.domNode,
-			resolveHoverOptions
-		));
+		store.add(this.hoverService.setupDelayedHover(this.domNode, () => ({
+			...hoverOptions,
+			content: createDetails()?.domNode ?? ''
+		})));
 
-		// Helper to show sticky hover with focus
 		const showStickyHover = () => {
-			if (this.currentData) {
-				// Force hide any existing hover to ensure we can show our sticky one
-				this.hoverService.hideHover(true);
-
-				const details = getOrCreateDetails();
+			const details = createDetails();
+			if (details) {
 				this.hoverService.showInstantHover(
-					{
-						content: details.domNode,
-						target: this.domNode,
-						appearance: { showPointer: true, compact: true },
-						persistence: { hideOnHover: false, sticky: true },
-						trapFocus: true,
-					},
+					{ ...hoverOptions, content: details.domNode, target: this.domNode, persistence: { hideOnHover: false, sticky: true } },
 					true
 				);
 			}

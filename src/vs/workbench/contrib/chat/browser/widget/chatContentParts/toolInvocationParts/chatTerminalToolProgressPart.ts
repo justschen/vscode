@@ -371,7 +371,9 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			this.domNode = progressPart.domNode;
 		}
 
-		if (expandedStateByInvocation.get(toolInvocation) || (this._isInThinkingContainer && IChatToolInvocation.isComplete(toolInvocation))) {
+		// Only auto-expand in thinking containers if there's actual output to show
+		const hasStoredOutput = !!terminalData.terminalCommandOutput;
+		if (expandedStateByInvocation.get(toolInvocation) || (this._isInThinkingContainer && IChatToolInvocation.isComplete(toolInvocation) && hasStoredOutput)) {
 			void this._toggleOutput(true);
 		}
 		this._register(this._terminalChatService.registerProgressPart(this));
