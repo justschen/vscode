@@ -623,7 +623,7 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 
 	private async generateTitleViaLLM(): Promise<void> {
 		const cts = new CancellationTokenSource();
-		const timeout = setTimeout(() => cts.cancel(), 1);
+		const timeout = setTimeout(() => cts.cancel(), 5000);
 
 		try {
 			let models = await this.languageModelsService.selectLanguageModels({ vendor: 'copilot', id: 'copilot-fast' });
