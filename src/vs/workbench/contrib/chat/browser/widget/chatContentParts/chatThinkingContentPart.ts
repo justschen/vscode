@@ -132,9 +132,8 @@ const toolMessages = [
 	localize('chat.thinking.tool.1', 'Processing...'),
 	localize('chat.thinking.tool.2', 'Preparing...'),
 	localize('chat.thinking.tool.3', 'Loading...'),
-	localize('chat.thinking.tool.4', 'Computing...'),
-	localize('chat.thinking.tool.5', 'Analyzing...'),
-	localize('chat.thinking.tool.6', 'Evaluating...'),
+	localize('chat.thinking.tool.4', 'Analyzing...'),
+	localize('chat.thinking.tool.5', 'Evaluating...'),
 ];
 
 export class ChatThinkingContentPart extends ChatCollapsibleContentPart implements IChatContentPart {
@@ -1241,7 +1240,9 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 		}
 
 		if (this.workingSpinnerLabel) {
-			this.workingSpinnerLabel.textContent = this.getRandomWorkingMessage();
+			const isTerminalTool = item.toolInvocationOrMarkdown && (item.toolInvocationOrMarkdown.kind === 'toolInvocation' || item.toolInvocationOrMarkdown.kind === 'toolInvocationSerialized') && item.toolInvocationOrMarkdown.toolSpecificData?.kind === 'terminal';
+			const category = isTerminalTool ? WorkingMessageCategory.Terminal : WorkingMessageCategory.Tool;
+			this.workingSpinnerLabel.textContent = this.getRandomWorkingMessage(category);
 		}
 
 		// Handle tool items
