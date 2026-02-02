@@ -214,8 +214,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	border-radius: 3px;
+	border: 1px solid var(--vscode-input-border, var(--vscode-chat-requestBorder));
+	border-radius: 4px;
 	outline: none;
+	padding: 4px 0;
 }
 
 .chat-question-list:focus-visible {
@@ -227,10 +229,15 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 4px 8px;
+	padding: 6px 8px;
 	cursor: pointer;
 	border-radius: 3px;
 	user-select: none;
+	border-bottom: 1px solid var(--vscode-chat-requestBorder);
+}
+
+.chat-question-list-item:last-child {
+	border-bottom: none;
 }
 
 .chat-question-list-item:hover {

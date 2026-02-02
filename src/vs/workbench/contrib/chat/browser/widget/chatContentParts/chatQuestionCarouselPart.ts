@@ -16,7 +16,7 @@ import { InputBox } from '../../../../../../base/browser/ui/inputbox/inputBox.js
 import { Checkbox } from '../../../../../../base/browser/ui/toggle/toggle.js';
 import { IChatQuestion, IChatQuestionCarousel } from '../../../common/chatService/chatService.js';
 import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';
-import { IChatRendererContent } from '../../../common/model/chatViewModel.js';
+import { IChatRendererContent, isResponseVM } from '../../../common/model/chatViewModel.js';
 import { ChatTreeItem } from '../../chat.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import './media/chatQuestionCarousel.css';
@@ -59,7 +59,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 
 	constructor(
 		private readonly carousel: IChatQuestionCarousel,
-		_context: IChatContentPartRenderContext,
+		context: IChatContentPartRenderContext,
 		private readonly _options: IChatQuestionCarouselOptions,
 	) {
 		super();
@@ -73,8 +73,10 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 			}
 		}
 
-		// If carousel was already used, show summary of answers
-		if (carousel.isUsed) {
+		// If carousel was already used OR the response is complete, show summary of answers
+		// When response is complete, the carousel can no longer be interacted with
+		const responseIsComplete = isResponseVM(context.element) && context.element.isComplete;
+		if (carousel.isUsed || responseIsComplete) {
 			this._isSkipped = true;
 			this.domNode.classList.add('chat-question-carousel-used');
 			this.renderSummary();
@@ -140,15 +142,16 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 			interactiveStore.add(this._skipAllButton.onDidClick(() => this.ignore()));
 		}
 
-		// Register keyboard navigation - only handle Enter on text inputs
+		// Register keyboard navigation - handle Enter on text inputs and freeform textareas
 		interactiveStore.add(dom.addDisposableListener(this.domNode, dom.EventType.KEY_DOWN, (e: KeyboardEvent) => {
 			const event = new StandardKeyboardEvent(e);
 			if (event.keyCode === KeyCode.Enter && !event.shiftKey) {
-				// Only handle Enter key for text inputs, not radio/checkbox or buttons
+				// Handle Enter key for text inputs and freeform textareas, not radio/checkbox or buttons
 				// Buttons have their own Enter/Space handling via Button class
 				const target = e.target as HTMLElement;
 				const isTextInput = target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'text';
-				if (isTextInput) {
+				const isFreeformTextarea = target.tagName === 'TEXTAREA' && target.classList.contains('chat-question-freeform-textarea');
+				if (isTextInput || isFreeformTextarea) {
 					e.preventDefault();
 					e.stopPropagation();
 					this.handleNext();
@@ -622,6 +625,13 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 
 		// Setup auto-resize behavior
 		const autoResize = this.setupTextareaAutoResize(freeformTextarea);
+
+		// clear when we start typing in freeform
+		this._inputBoxes.add(dom.addDisposableListener(freeformTextarea, dom.EventType.INPUT, () => {
+			if (freeformTextarea.value.length > 0) {
+				updateSelection(-1);
+			}
+		}));
 
 		freeformContainer.appendChild(freeformTextarea);
 		container.appendChild(freeformContainer);
