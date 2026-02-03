@@ -2170,10 +2170,6 @@ have to be updated for changes to the rules above, or to support more deeply nes
 
 	> .codicon[class*='codicon-'] {
 		font-size: var(--vscode-chat-font-size-body-s);
-
-		&::before {
-			font-size: var(--vscode-chat-font-size-body-s);
-		}
 	}
 
 	.codicon {

@@ -1899,7 +1899,11 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 	private renderQuestionCarousel(context: IChatContentPartRenderContext, carousel: IChatQuestionCarousel, templateData: IChatListItemTemplate): IChatContentPart {
 		this.finalizeCurrentThinkingPart(context, templateData);
 
+		const widget = isResponseVM(context.element) ? this.chatWidgetService.getWidgetBySessionResource(context.element.sessionResource) : undefined;
+		const shouldAutoFocus = widget ? widget.getInput() === '' : true;
+
 		const part = this.instantiationService.createInstance(ChatQuestionCarouselPart, carousel, context, {
+			shouldAutoFocus,
 			onSubmit: async (answers) => {
 				// Mark the carousel as used and store the answers
 				const answersRecord = answers ? Object.fromEntries(answers) : undefined;
