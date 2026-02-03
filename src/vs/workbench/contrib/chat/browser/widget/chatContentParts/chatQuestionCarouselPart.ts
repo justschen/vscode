@@ -398,9 +398,9 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 
 		this._questionContainer.appendChild(headerRow);
 
+		const isSingleQuestion = this.carousel.questions.length === 1;
 		// Update step indicator in footer
 		if (this._stepIndicator) {
-			const isSingleQuestion = this.carousel.questions.length === 1;
 			this._stepIndicator.textContent = `${this._currentIndex + 1}/${this.carousel.questions.length}`;
 			this._stepIndicator.style.display = isSingleQuestion ? 'none' : '';
 		}
@@ -411,7 +411,6 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 		this._questionContainer.appendChild(inputContainer);
 
 		// Update navigation button states (prevButton and nextButton are guaranteed non-null from guard above)
-		const isSingleQuestion = this.carousel.questions.length === 1;
 		this._prevButton!.enabled = this._currentIndex > 0;
 		this._prevButton!.element.style.display = isSingleQuestion ? 'none' : '';
 
