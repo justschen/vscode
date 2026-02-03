@@ -146,7 +146,11 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 		// Register keyboard navigation - handle Enter on text inputs and freeform textareas
 		interactiveStore.add(dom.addDisposableListener(this.domNode, dom.EventType.KEY_DOWN, (e: KeyboardEvent) => {
 			const event = new StandardKeyboardEvent(e);
-			if (event.keyCode === KeyCode.Enter && !event.shiftKey) {
+			if (event.keyCode === KeyCode.Escape && this.carousel.allowSkip) {
+				e.preventDefault();
+				e.stopPropagation();
+				this.ignore();
+			} else if (event.keyCode === KeyCode.Enter && !event.shiftKey) {
 				// Handle Enter key for text inputs and freeform textareas, not radio/checkbox or buttons
 				// Buttons have their own Enter/Space handling via Button class
 				const target = e.target as HTMLElement;
@@ -1053,7 +1057,11 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 		}
 	}
 
-	hasSameContent(other: IChatRendererContent, _followingContent: IChatRendererContent[], _element: ChatTreeItem): boolean {
+	hasSameContent(other: IChatRendererContent, _followingContent: IChatRendererContent[], element: ChatTreeItem): boolean {
+		// does not have same content when it is not skipped and is active and we stop the response
+		if (!this._isSkipped && !this.carousel.isUsed && isResponseVM(element) && element.isComplete) {
+			return false;
+		}
 		return other.kind === 'questionCarousel' && other === this.carousel;
 	}
 
