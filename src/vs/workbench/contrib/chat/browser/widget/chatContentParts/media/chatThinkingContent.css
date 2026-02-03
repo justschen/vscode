@@ -21,8 +21,12 @@
 		line-height: 1.5em;
 		font-size: 13px;
 
-		.codicon, .monaco-button-mdlabel {
+		.monaco-button-mdlabel {
 			font-size: var(--vscode-chat-font-size-body-s);
+		}
+
+		.codicon {
+			font-size: 12px;
 		}
 
 		.rendered-markdown.collapsible-title-content {
