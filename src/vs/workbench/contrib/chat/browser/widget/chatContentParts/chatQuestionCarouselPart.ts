@@ -62,7 +62,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 	private readonly _interactiveUIStore: MutableDisposable<DisposableStore> = this._register(new MutableDisposable());
 
 	constructor(
-		private readonly carousel: IChatQuestionCarousel,
+		public readonly carousel: IChatQuestionCarousel,
 		context: IChatContentPartRenderContext,
 		private readonly _options: IChatQuestionCarouselOptions,
 		@IHoverService private readonly _hoverService: IHoverService,

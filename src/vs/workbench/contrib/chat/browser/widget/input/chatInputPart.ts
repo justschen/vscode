@@ -2413,7 +2413,12 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	renderQuestionCarousel(carousel: IChatQuestionCarousel, context: IChatContentPartRenderContext, options: IChatQuestionCarouselOptions): ChatQuestionCarouselPart {
 
 		if (this._chatQuestionCarouselWidget.value) {
-			return this._chatQuestionCarouselWidget.value;
+			const existingCarousel = this._chatQuestionCarouselWidget.value;
+			const existingResolveId = existingCarousel.carousel.resolveId;
+			if (existingResolveId && carousel.resolveId && existingResolveId === carousel.resolveId) {
+				return existingCarousel;
+			}
+			this.clearQuestionCarousel();
 		}
 
 		// track the response id and session
