@@ -95,10 +95,14 @@ export class ModalEditorPart {
 			menuOptions: { shouldForwardArgs: true }
 		}));
 
-		// Update title when active editor changes
 		disposables.add(Event.runAndSubscribe(modalEditorService.onDidActiveEditorChange, (() => {
+
+			// Update title when active editor changes
 			const activeEditor = editorPart.activeGroup.activeEditor;
 			titleElement.textContent = activeEditor?.getTitle(Verbosity.MEDIUM) ?? '';
+
+			// Notify editor part that active editor changed
+			editorPart.notifyActiveEditorChanged();
 		})));
 
 		// Handle close on click outside (on the dimmed background)
@@ -123,7 +127,7 @@ export class ModalEditorPart {
 			editorPartContainer.style.height = `${height}px`;
 
 			const borderSize = 2; // Account for 1px border on all sides and modal header height
-			const headerHeight = 24 + 1 /* border bottom */;
+			const headerHeight = 32 + 1 /* border bottom */;
 			editorPart.layout(width - borderSize, height - borderSize - headerHeight, 0, 0);
 		}));
 
@@ -157,20 +161,28 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 		@IStorageService storageService: IStorageService,
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
 		@IHostService hostService: IHostService,
-		@IContextKeyService contextKeyService: IContextKeyService
+		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
 		const id = ModalEditorPartImpl.COUNTER++;
 		super(editorPartsView, `workbench.parts.modalEditor.${id}`, groupsLabel, windowId, instantiationService, themeService, configurationService, storageService, layoutService, hostService, contextKeyService);
 
-		// Enforce some editor part options for modal editors
+		this.enforceModalPartOptions();
+	}
+
+	private enforceModalPartOptions(): void {
+		const editorCount = this.groups.reduce((count, group) => count + group.count, 0);
 		this.optionsDisposable.value = this.enforcePartOptions({
-			showTabs: 'none',
+			showTabs: editorCount > 1 ? 'multiple' : 'none',
 			closeEmptyGroups: true,
-			tabActionCloseVisibility: false,
+			tabActionCloseVisibility: editorCount > 1,
 			editorActionsLocation: 'default',
 			tabHeight: 'default',
 			wrapTabs: false
 		});
+	}
+
+	notifyActiveEditorChanged(): void {
+		this.enforceModalPartOptions();
 	}
 
 	protected override handleContextKeys(): void {

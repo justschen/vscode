@@ -90,3 +90,31 @@ export interface IPreToolUseCommandOutput extends IHookCommandOutput {
 }
 
 //#endregion
+
+//#region PostToolUse Hook Types
+
+/**
+ * Tool-specific command input fields for postToolUse hook.
+ * These are mixed with IHookCommandInput at runtime.
+ */
+export interface IPostToolUseCommandInput {
+	readonly tool_name: string;
+	readonly tool_input: unknown;
+	readonly tool_response: string;
+	readonly tool_use_id: string;
+}
+
+/**
+ * External command output for postToolUse hook.
+ * Extends common output with decision control fields.
+ */
+export interface IPostToolUseCommandOutput extends IHookCommandOutput {
+	readonly decision?: 'block';
+	readonly reason?: string;
+	readonly hookSpecificOutput?: {
+		readonly hookEventName?: string;
+		readonly additionalContext?: string;
+	};
+}
+
+//#endregion

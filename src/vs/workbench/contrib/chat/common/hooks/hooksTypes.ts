@@ -67,7 +67,7 @@ export interface IPreToolUseCallerInput {
 export const preToolUseOutputValidator = vObj({
 	hookSpecificOutput: vOptionalProp(vObj({
 		hookEventName: vOptionalProp(vString()),
-		permissionDecision: vEnum('allow', 'deny'),
+		permissionDecision: vEnum('allow', 'deny', 'ask'),
 		permissionDecisionReason: vOptionalProp(vString()),
 		additionalContext: vOptionalProp(vString()),
 	})),
@@ -75,8 +75,11 @@ export const preToolUseOutputValidator = vObj({
 
 /**
  * Valid permission decisions for preToolUse hooks.
+ * - 'allow': Auto-approve the tool execution (skip user confirmation)
+ * - 'deny': Deny the tool execution
+ * - 'ask': Always require user confirmation (never auto-approve)
  */
-export type PreToolUsePermissionDecision = 'allow' | 'deny';
+export type PreToolUsePermissionDecision = 'allow' | 'deny' | 'ask';
 
 /**
  * Result from preToolUse hooks with permission decision fields.
@@ -85,6 +88,43 @@ export type PreToolUsePermissionDecision = 'allow' | 'deny';
 export interface IPreToolUseHookResult extends IHookResult {
 	readonly permissionDecision?: PreToolUsePermissionDecision;
 	readonly permissionDecisionReason?: string;
+	readonly additionalContext?: string;
+}
+
+//#endregion
+
+//#region PostToolUse Hook Types
+
+/**
+ * Input provided by VS Code callers when invoking the postToolUse hook.
+ * The toolResponse is a lazy getter that renders the tool result content to a string.
+ * It is only called if there are PostToolUse hooks registered.
+ */
+export interface IPostToolUseCallerInput {
+	readonly toolName: string;
+	readonly toolInput: unknown;
+	readonly getToolResponseText: () => string;
+	readonly toolCallId: string;
+}
+
+export const postToolUseOutputValidator = vObj({
+	decision: vOptionalProp(vEnum('block')),
+	reason: vOptionalProp(vString()),
+	hookSpecificOutput: vOptionalProp(vObj({
+		hookEventName: vOptionalProp(vString()),
+		additionalContext: vOptionalProp(vString()),
+	})),
+});
+
+export type PostToolUseDecision = 'block';
+
+/**
+ * Result from postToolUse hooks with decision fields.
+ * Returned to VS Code callers.
+ */
+export interface IPostToolUseHookResult extends IHookResult {
+	readonly decision?: PostToolUseDecision;
+	readonly reason?: string;
 	readonly additionalContext?: string;
 }
 
